@@ -1,14 +1,14 @@
-using System.Collections.Generic;
+using Application.Common;
+using MediatR;
 
-namespace Domain.Entities
+namespace Application.Request
 {
-    public class News : BaseEntity
+    public class CreateNewsRequest : IRequest<BaseResponse>
     {
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string? Summary { get; set; }
         public bool IsPublished { get; set; }
-
-        public ICollection<MenuNews> MenuNews { get; set; } = new List<MenuNews>();
+        public List<int> MenuIds { get; set; } = new();
     }
 }

@@ -1,17 +1,17 @@
+using Application.Common;
+using MediatR;
 using System;
-using System.Collections.Generic;
 
-namespace Application.DTOs
+
+namespace Application.Request
 {
-    public class NewsDto
+    public class UpdateNewsRequest : IRequest<BaseResponse>
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string? Summary { get; set; }
         public bool IsPublished { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public List<MenuDto> Menus { get; set; } = new();
+        public List<int> MenuIds { get; set; } = new();
     }
 }

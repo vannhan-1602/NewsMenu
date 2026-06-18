@@ -1,21 +1,28 @@
-﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Domain.Entities;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Interfaces
 {
+    
     public interface IRepository<T> where T : BaseEntity
     {
-        Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
-        Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default);
+        Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
+
+        // Trả về IQueryable để Application layer tự Select 
+        IQueryable<T> Query();
+
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+
+        // Kiểm tra tồn tại theo danh sách id 
+        Task<List<int>> GetExistingIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
+
         Task AddAsync(T entity, CancellationToken ct = default);
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
+
+        // Update chỉ đánh dấu trạng thái Entry, KHÔNG tự SaveChanges 
         void Update(T entity);
+
+        // Soft delete
         void SoftDelete(T entity);
     }
 }

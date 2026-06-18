@@ -1,46 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Domain.Interfaces;
+using Infrastructure.Persistence;
+using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Interfaces;
-using Application.Interfaces;                 
-using Infrastructure.Persistence;             
-using Infrastructure.Persistence.Repositories;
-using Infrastructure.Options;                  
-using Infrastructure.Repositories;           
-using Infrastructure.Messaging;             
 
 namespace Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services,
-            IConfiguration config)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // SQL Server
-            services.AddDbContext<AppDbContext>(opts =>
-                opts.UseSqlServer(config.GetConnectionString("SqlServer")));
+            // DB-first: connection string trỏ vào SQL Server đã có sẵn schema
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // Repositories va Unit of work
+            // Repository - generic BaseRepository dùng chung
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<INewsRepository, NewsRepository>();
+
+            // UnitOfWork - chỉ quản lý transaction
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            // MongoDB Read
-            services.Configure<MongoDbOptions>(config.GetSection("MongoDB"));
-            services.AddScoped<INewsReadRepository, NewsMongoReadRepository>();
-
-            // RabbitMQ Publisher
-            services.Configure<RabbitMqOptions>(config.GetSection("RabbitMQ"));
-            services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
-
-            // Consumer chạy nền
-            services.AddHostedService<NewsCreatedConsumer>();
 
             return services;
         }

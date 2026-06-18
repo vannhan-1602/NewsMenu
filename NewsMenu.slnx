@@ -2,5 +2,5 @@
   <Project Path="Application/Application.csproj" />
   <Project Path="Domain/Domain.csproj" />
   <Project Path="Infrastructure/Infrastructure.csproj" />
-  <Project Path="Presentation.gRPC/Presentation.gRPC.csproj" />
+  <Project Path="Presentation.API/Presentation.API.csproj" />
 </Solution>

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Domain.Entities;
+
 namespace Infrastructure.Persistence.Configurations
 {
     public class MenuConfiguration : IEntityTypeConfiguration<Menu>
@@ -13,33 +9,18 @@ namespace Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Menu> builder)
         {
             builder.ToTable("Menus");
-            builder.Property(m => m.Id)
-                   .HasColumnName("menu_id")
-                   .HasDefaultValueSql("NEWSEQUENTIALID()");
 
             builder.HasKey(m => m.Id);
+            builder.Property(m => m.Id)
+                   .HasColumnName("menu_id")
+                   .ValueGeneratedOnAdd(); 
 
-            builder.Property(m => m.Name)
-                   .HasMaxLength(200)
-                   .IsRequired();
-
-            builder.Property(m => m.Slug)
-                   .HasMaxLength(200)
-                   .IsRequired();
-
-            builder.Property(m => m.IsDeleted)
-                   .HasDefaultValue(false);
-
-            builder.Property(m => m.CreatedAt)
-                   .HasDefaultValueSql("SYSUTCDATETIME()");
-
-            builder.Property(m => m.UpdatedAt)
-                   .HasDefaultValueSql("SYSUTCDATETIME()");
-            builder.HasQueryFilter(m => !m.IsDeleted);
-            builder.HasMany(m => m.MenuNews)
-                   .WithOne(mn => mn.Menu)
-                   .HasForeignKey(mn => mn.MenuId)
-                   .OnDelete(DeleteBehavior.Restrict); 
+            builder.Property(m => m.Name).HasColumnName("name").HasMaxLength(255).IsRequired();
+            builder.Property(m => m.Slug).HasColumnName("slug").HasMaxLength(255).IsRequired();
+            builder.Property(m => m.DisplayOrder).HasColumnName("display_order");
+            builder.Property(m => m.IsDeleted).HasColumnName("is_deleted");
+            builder.Property(m => m.CreatedAt).HasColumnName("created_at");
+            builder.Property(m => m.UpdatedAt).HasColumnName("updated_at");
         }
     }
 }
