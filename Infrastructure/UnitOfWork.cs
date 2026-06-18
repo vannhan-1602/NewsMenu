@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure
 {
-   
+
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
@@ -18,6 +18,11 @@ namespace Infrastructure
         public async Task BeginTransactionAsync(CancellationToken ct = default)
         {
             _transaction = await _context.Database.BeginTransactionAsync(ct);
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+        {
+            return await _context.SaveChangesAsync(ct);
         }
 
         public async Task<int> CommitAsync(CancellationToken ct = default)

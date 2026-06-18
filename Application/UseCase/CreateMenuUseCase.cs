@@ -36,7 +36,10 @@ namespace Application.UseCase
 
                 await _menuRepository.AddAsync(menu, ct);
 
-                
+                // Lưu Menu trước để lấy Id thật (identity) trước khi gán vào MenuNews
+                await _unitOfWork.SaveChangesAsync(ct);
+
+
                 var invalidIds = new List<int>();
 
                 if (request.NewsIds != null && request.NewsIds.Any())
@@ -44,14 +47,14 @@ namespace Application.UseCase
                     // Kiểm tra Id nào thực sự tồn tại trong DB
                     var existingIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
 
-                    
+
                     var existingSet = new HashSet<int>(existingIds);
 
                     // Thu thập Id không hợp lệ
                     invalidIds = request.NewsIds
                         .Distinct()
                         .Where(id => !existingSet.Contains(id))
-                        .ToList(); 
+                        .ToList();
 
                     // Chỉ gán các Id hợp lệ
                     if (existingIds.Any())
