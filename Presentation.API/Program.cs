@@ -9,6 +9,8 @@ builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+
+//áp dụng cho mọi controller
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationExceptionFilter>();

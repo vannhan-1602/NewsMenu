@@ -15,13 +15,16 @@ namespace Application.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
         {
+            //nếu không có validator nào thì bỏ qua và chạy usecase
             if (!_validators.Any()) return await next(ct);
 
+            //tạo context chứa object request để validator có thể lấy ra thông tin 
             var context = new ValidationContext<TRequest>(request);
 
-            // ValidateAsync để MustAsync (check DB) chạy đúng
+            // ValidateAsync để MustAsync chạy đúng
             var results = await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, ct)));
 
+            //gom nhóm lỗi lại thành một list để trả về cho client
             var failures = results.SelectMany(r => r.Errors).Where(f => f != null).ToList();
 
             if (failures.Count != 0)

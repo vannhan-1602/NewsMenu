@@ -18,6 +18,8 @@ namespace Infrastructure
             // Repository - generic BaseRepository dùng chung
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<INewsRepository, NewsRepository>();
+            services.AddScoped<IWardRepository, WardRepository>();
+            services.AddScoped<ICountryRepository, CountryRepository>();
 
             // UnitOfWork - chỉ quản lý transaction
             services.AddScoped<IUnitOfWork, UnitOfWork>();

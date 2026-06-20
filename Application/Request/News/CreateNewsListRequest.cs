@@ -1,0 +1,19 @@
+using Application.Common;
+using MediatR;
+
+namespace Application.Request.News
+{
+    public class NewsCreateItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string? Summary { get; set; }
+        public bool IsPublished { get; set; }
+        public List<int> MenuIds { get; set; } = new();
+    }
+
+    public class CreateNewsListRequest : IRequest<BaseResponse>
+    {
+        public List<NewsCreateItem> Items { get; set; } = new();
+    }
+}

@@ -10,6 +10,8 @@ namespace Infrastructure.Persistence
         public DbSet<Menu> Menus => Set<Menu>();
         public DbSet<News> News => Set<News>();
         public DbSet<MenuNews> MenuNews => Set<MenuNews>();
+        public DbSet<Country> Countries => Set<Country>();
+        public DbSet<Ward> Wards => Set<Ward>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

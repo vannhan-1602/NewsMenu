@@ -16,6 +16,7 @@ namespace Presentation.API.Filters
                 context.Result = new BadRequestObjectResult(new BaseResponse
                 {
                     Success = false,
+                    // Nối tất cả lỗi thành một chuỗi để trả về client
                     Message = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage))
                 });
 
