@@ -29,9 +29,6 @@ namespace Application.UseCase
             try
             {
                 var ids = request.Items.Select(x => x.Id).ToList();
-
-                // Lấy toàn bộ Menu cần update trong 1 query, không loop GetByIdAsync từng cái
-                // AsAsyncEnumerable + await foreach thay cho ToListAsync()
                 var menus = new List<Menu>();
                 await foreach (var menu in _menuRepository.Query()
                     .Where(m => ids.Contains(m.Id))
@@ -41,8 +38,6 @@ namespace Application.UseCase
                     menus.Add(menu);
                 }
                 var menuDict = menus.ToDictionary(m => m.Id);
-
-                // Không ToList() - truyền thẳng IEnumerable, GetExistingIdsAsync chỉ enumerate đúng 1 lần
                 var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
                 var existingNewsIds = allNewsIds.Any()
                     ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
@@ -68,7 +63,6 @@ namespace Application.UseCase
                     var validIds = item.NewsIds.Distinct().Where(existingNewsSet.Contains).ToList();
                     totalInvalid += item.NewsIds.Distinct().Count() - validIds.Count;
 
-                    // Đơn giản hóa: xóa hết MenuNews hiện có của menu này rồi thêm lại từ đầu
                     var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                     allToRemove.AddRange(currentLinks);
                     allToAdd.AddRange(validIds.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId }));

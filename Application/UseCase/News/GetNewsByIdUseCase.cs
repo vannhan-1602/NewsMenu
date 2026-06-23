@@ -17,8 +17,8 @@ namespace Application.UseCase
 
         public async Task<NewsDto?> Handle(GetNewsByIdRequest request, CancellationToken ct)
         {
-            // 1 câu Select duy nhất - EF tự JOIN Menu, Ward, Ward.Parent, Ward.Country qua navigation
-            // n.Ward.Parent là khóa ngoại giả tự tham chiếu - đây chính là phép đệ quy 1 cấp (Phường -> Tỉnh/TP)
+            
+            //phép đệ quy 1 cấp (Phường -> Tỉnh/TP)
             return await _newsRepository.Query()
                 .Where(n => n.Id == request.Id)
                 .Select(n => new NewsDto

@@ -17,7 +17,7 @@ namespace Application.UseCase
 
         public async Task<List<NewsDto>> Handle(GetNewsListRequest request, CancellationToken ct)
         {
-            // 1 câu Select duy nhất - EF tự JOIN Menu, Ward, Ward.Parent, Ward.Country qua navigation
+           
             var query = _newsRepository.Query()
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
@@ -65,7 +65,7 @@ namespace Application.UseCase
                     }
                 });
 
-            // AsAsyncEnumerable() + await foreach thay cho ToListAsync()
+            
             var result = new List<NewsDto>();
             await foreach (var news in query.AsAsyncEnumerable().WithCancellation(ct))
                 result.Add(news);

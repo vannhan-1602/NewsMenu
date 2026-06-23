@@ -30,7 +30,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // WardId chỉ gán nếu thực sự tồn tại trong DB - tương tự cách xử lý MenuIds/NewsIds không hợp lệ
+               
                 int? wardId = null;
                 bool wardInvalid = false;
                 if (request.WardId.HasValue)
@@ -58,7 +58,7 @@ namespace Application.UseCase
 
                 await _newsRepository.AddAsync(news, ct);
 
-                // Lưu News trước để lấy Id thật (IDENTITY) trước khi gán vào MenuNews
+                // Lưu News trước để lấy Id thật trước khi gán vào MenuNews
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 var invalidIds = new List<int>();

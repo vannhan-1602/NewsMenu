@@ -24,7 +24,7 @@ namespace Presentation.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // Thêm nhiều Menu trong 1 request - body: { "items": [ {...}, {...} ] }
+        // Thêm nhiều Menu trong 1 request 
         [HttpPost("batch")]
         public async Task<ActionResult<BaseResponse>> CreateMany([FromBody] CreateMenuListRequest request, CancellationToken ct)
         {
@@ -32,7 +32,7 @@ namespace Presentation.API.Controllers
             return Ok(result);
         }
 
-        // Sửa nhiều Menu trong 1 request - body: { "items": [ { "id":1, ... }, ... ] }
+        // Sửa nhiều Menu trong 1 request }
         [HttpPut("batch")]
         public async Task<ActionResult<BaseResponse>> UpdateMany([FromBody] UpdateMenuListRequest request, CancellationToken ct)
         {
@@ -76,7 +76,7 @@ namespace Presentation.API.Controllers
             return Ok(result);
         }
 
-        // Xóa nhiều Menu trong 1 request - body: { "ids": [1, 2, 3] }
+        // Xóa nhiều Menu trong 1 request 
         [HttpDelete("batch")]
         public async Task<ActionResult<BaseResponse>> DeleteMany([FromBody] DeleteMenuListRequest request, CancellationToken ct)
         {

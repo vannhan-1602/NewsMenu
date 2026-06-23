@@ -50,8 +50,6 @@ namespace Application.UseCase
                         .ToList();
                 }
 
-                // Đơn giản hóa: xóa hết MenuNews hiện có theo khóa (MenuId, NewsId) rồi thêm lại từ đầu
-                // thay vì tính diff add/remove - tránh rắc rối khi data lỡ bị lệch
                 var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                 if (currentLinks.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(currentLinks);

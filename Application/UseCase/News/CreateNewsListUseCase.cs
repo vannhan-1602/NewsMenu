@@ -27,7 +27,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // Không ToList() - truyền thẳng IEnumerable, GetExistingIdsAsync chỉ enumerate đúng 1 lần
+              
                 var allMenuIds = request.Items.SelectMany(x => x.MenuIds).Distinct();
                 var existingMenuIds = allMenuIds.Any()
                     ? await _menuRepository.GetExistingIdsAsync(allMenuIds, ct)

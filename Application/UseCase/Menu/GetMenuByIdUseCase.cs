@@ -17,8 +17,7 @@ namespace Application.UseCase
 
         public async Task<MenuDto?> Handle(GetMenuByIdRequest request, CancellationToken ct)
         {
-            // 1 câu Select duy nhất - nhờ navigation property (FK), EF tự JOIN MenuNews -> News
-            // ngay trong cùng 1 câu SQL, không cần query phụ như bản trước
+          
             return await _menuRepository.Query()
                 .Where(m => m.Id == request.Id)
                 .Select(m => new MenuDto

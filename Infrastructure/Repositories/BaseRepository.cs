@@ -74,8 +74,7 @@ namespace Infrastructure.Repositories
         {
             entity.UpdatedAt = DateTime.UtcNow;
             _dbSet.Update(entity);
-            // Soft-delete cũng đi qua hàm này: UseCase tự set entity.IsDeleted = true rồi gọi Update()
-            // Không cần hàm SoftDelete() riêng vì bản chất chỉ là update 1 cột trạng thái
+           
         }
 
         public void UpdateRange(IEnumerable<T> entities)

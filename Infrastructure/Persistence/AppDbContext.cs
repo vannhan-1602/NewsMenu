@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Infrastructure.Persistence
 {
@@ -16,6 +17,13 @@ namespace Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var fk in entityType.GetForeignKeys())
+                {
+                    fk.SetConstraintName(null);
+                }
+            }
         }
     }
 }

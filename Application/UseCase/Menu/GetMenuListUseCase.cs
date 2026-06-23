@@ -17,7 +17,6 @@ namespace Application.UseCase
 
         public async Task<List<MenuDto>> Handle(GetMenuListRequest request, CancellationToken ct)
         {
-            // 1 câu Select duy nhất - EF tự JOIN qua navigation property (FK đã gắn ở Configuration)
             var query = _menuRepository.Query()
                 .OrderBy(m => m.DisplayOrder)
                 .Skip((request.Page - 1) * request.PageSize)
@@ -38,9 +37,6 @@ namespace Application.UseCase
                             IsPublished = mn.News.IsPublished
                         }).ToList()
                 });
-
-            // AsAsyncEnumerable() + await foreach thay cho ToListAsync()
-            // EF đọc và trả về từng row một (streaming), không gom hết page vào buffer cùng lúc
             var result = new List<MenuDto>();
             await foreach (var menu in query.AsAsyncEnumerable().WithCancellation(ct))
                 result.Add(menu);

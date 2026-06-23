@@ -11,8 +11,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<MenuNews>> GetMenuNewsByNewsIdAsync(int newsId, CancellationToken ct = default)
         {
-            // AsAsyncEnumerable + await foreach thay cho ToListAsync()
-            // Đọc và gom từng row một, không buffer toàn bộ kết quả cùng lúc
+           
             var result = new List<MenuNews>();
             await foreach (var mn in _context.MenuNews
                 .Where(x => x.NewsId == newsId)

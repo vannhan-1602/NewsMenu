@@ -24,8 +24,6 @@ namespace Application.UseCase
             try
             {
                 var ids = request.Ids.Distinct().ToList();
-
-                // Lấy toàn bộ News cần xóa trong 1 query, không loop GetByIdAsync từng cái
                 var newsList = new List<News>();
                 await foreach (var news in _newsRepository.Query()
                     .Where(n => ids.Contains(n.Id))
@@ -38,7 +36,6 @@ namespace Application.UseCase
                 var foundIds = newsList.Select(n => n.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                // Xóa mềm = update trạng thái hàng loạt, không có hàm SoftDelete riêng
                 var allLinksToRemove = new List<MenuNews>();
                 foreach (var news in newsList)
                 {

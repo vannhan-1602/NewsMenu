@@ -36,7 +36,6 @@ namespace Application.UseCase
 
                 await _menuRepository.AddAsync(menu, ct);
 
-                // Lưu Menu trước để lấy Id thật (IDENTITY) trước khi gán vào MenuNews
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 var invalidIds = new List<int>();

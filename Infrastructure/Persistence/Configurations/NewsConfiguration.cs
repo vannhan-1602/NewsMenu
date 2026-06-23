@@ -26,13 +26,10 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(n => n.WardId).HasColumnName("ward_id");
             builder.Property(n => n.Address).HasColumnName("address").HasMaxLength(500);
 
-            // News -> Ward (Phường/Xã hoặc Tỉnh/TP) - khóa ngoại giả, đồng nhất cách làm chung
-            var wardFk = builder.HasOne(n => n.Ward)
+            builder.HasOne(n => n.Ward)
                    .WithMany()
                    .HasForeignKey(n => n.WardId)
-                   .OnDelete(DeleteBehavior.ClientSetNull)
-                   .Metadata;
-            wardFk.SetIsForeignKeyConstraintCreationDisabled(true);
+                   .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }

@@ -22,23 +22,15 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(w => w.CreatedAt).HasColumnName("created_at");
             builder.Property(w => w.UpdatedAt).HasColumnName("updated_at");
 
-            // "Khóa ngoại giả" - tự tham chiếu (đệ quy): Ward.parent_id -> Ward.ward_id
-            // ParentId = 0 nghĩa là không có cha (Tỉnh/TP) - EF tự không match được Ward nào có ward_id = 0
-            // (IDENTITY bắt đầu từ 1), nên Parent sẽ tự nhiên là null, không cần xử lý đặc biệt
-            var parentFk = builder.HasOne(w => w.Parent)
+            builder.HasOne(w => w.Parent)
                    .WithMany(w => w.Children)
                    .HasForeignKey(w => w.ParentId)
-                   .OnDelete(DeleteBehavior.ClientSetNull)
-                   .Metadata;
-            parentFk.SetIsForeignKeyConstraintCreationDisabled(true);
+                   .OnDelete(DeleteBehavior.ClientSetNull);
 
-            // Ward -> Country
-            var countryFk = builder.HasOne(w => w.Country)
+            builder.HasOne(w => w.Country)
                    .WithMany(c => c.Wards)
                    .HasForeignKey(w => w.CountryId)
-                   .OnDelete(DeleteBehavior.ClientSetNull)
-                   .Metadata;
-            countryFk.SetIsForeignKeyConstraintCreationDisabled(true);
+                   .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }
