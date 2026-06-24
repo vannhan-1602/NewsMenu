@@ -40,7 +40,7 @@ namespace Application.UseCase
                             Name = mn.Menu.Name,
                             Slug = mn.Menu.Slug,
                             DisplayOrder = mn.Menu.DisplayOrder
-                        }).ToList(),
+                        }).ToArray(),
 
                     // Cách 1: cộng chuỗi - address + Ward + Ward.Parent (đệ quy) + Country
                     FullAddress = n.Ward == null

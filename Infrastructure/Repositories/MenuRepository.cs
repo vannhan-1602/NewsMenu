@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<MenuNews>> GetMenuNewsByMenuIdAsync(int menuId, CancellationToken ct = default)
         {
-           
+          
             var result = new List<MenuNews>();
             await foreach (var mn in _context.MenuNews
                 .Where(x => x.MenuId == menuId)

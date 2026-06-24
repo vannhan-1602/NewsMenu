@@ -10,7 +10,7 @@ namespace Application.Validator.Menu
             RuleFor(x => x.Items)
                 .NotEmpty().WithMessage("Items khong duoc rong");
 
-            // RuleForEach áp dụng rule cho từng item trong list, không cần loop tay
+         
             RuleForEach(x => x.Items).ChildRules(item =>
             {
                 item.RuleFor(i => i.Name)

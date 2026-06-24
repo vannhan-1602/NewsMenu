@@ -12,7 +12,7 @@ namespace Application.Request.Menu
         public List<int> NewsIds { get; set; } = new();
     }
 
-    // Sửa nhiều Menu trong 1 request - xử lý trong 1 transaction duy nhất
+    // Sửa nhiều Menu trong 1 request
     public class UpdateMenuListRequest : IRequest<BaseResponse>
     {
         public List<MenuUpdateItem> Items { get; set; } = new();

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Request.News
 {
-    public class GetNewsListRequest : IRequest<List<NewsDto>>
+    public class GetNewsListRequest : IRequest<IAsyncEnumerable<NewsDto>>
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;

@@ -7,7 +7,7 @@ namespace Application.DTOs
         public string Slug { get; set; } = string.Empty;
         public int DisplayOrder { get; set; }
         public DateTime CreatedAt { get; set; }
-        public List<NewsSimpleDto> News { get; set; } = new();
+        public NewsSimpleDto[] News { get; set; } = Array.Empty<NewsSimpleDto>();
     }
 
     public class NewsSimpleDto

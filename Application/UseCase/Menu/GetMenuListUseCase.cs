@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCase
 {
-    public class GetMenuListUseCase : IRequestHandler<GetMenuListRequest, List<MenuDto>>
+    public class GetMenuListUseCase : IRequestHandler<GetMenuListRequest, IAsyncEnumerable<MenuDto>>
     {
         private readonly IMenuRepository _menuRepository;
 
@@ -15,9 +15,10 @@ namespace Application.UseCase
             _menuRepository = menuRepository;
         }
 
-        public async Task<List<MenuDto>> Handle(GetMenuListRequest request, CancellationToken ct)
+        public Task<IAsyncEnumerable<MenuDto>> Handle(GetMenuListRequest request, CancellationToken ct)
         {
-            var query = _menuRepository.Query()
+           
+            var result = _menuRepository.Query()
                 .OrderBy(m => m.DisplayOrder)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -35,13 +36,11 @@ namespace Application.UseCase
                             Id = mn.News.Id,
                             Title = mn.News.Title,
                             IsPublished = mn.News.IsPublished
-                        }).ToList()
-                });
-            var result = new List<MenuDto>();
-            await foreach (var menu in query.AsAsyncEnumerable().WithCancellation(ct))
-                result.Add(menu);
+                        }).ToArray()
+                })
+                .AsAsyncEnumerable();
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

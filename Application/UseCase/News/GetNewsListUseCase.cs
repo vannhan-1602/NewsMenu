@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCase
 {
-    public class GetNewsListUseCase : IRequestHandler<GetNewsListRequest, List<NewsDto>>
+    public class GetNewsListUseCase : IRequestHandler<GetNewsListRequest, IAsyncEnumerable<NewsDto>>
     {
         private readonly INewsRepository _newsRepository;
 
@@ -15,10 +15,9 @@ namespace Application.UseCase
             _newsRepository = newsRepository;
         }
 
-        public async Task<List<NewsDto>> Handle(GetNewsListRequest request, CancellationToken ct)
+        public Task<IAsyncEnumerable<NewsDto>> Handle(GetNewsListRequest request, CancellationToken ct)
         {
-           
-            var query = _newsRepository.Query()
+            var result = _newsRepository.Query()
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -40,15 +39,14 @@ namespace Application.UseCase
                             Id = mn.Menu.Id,
                             Name = mn.Menu.Name,
                             Slug = mn.Menu.Slug,
-                            DisplayOrder = mn.Menu.DisplayOrder
-                        }).ToList(),
-
+                            DisplayOrder = mn.Menu.DisplayOrder,
+                            CreatedAt = mn.Menu.CreatedAt
+                        }).ToArray(),
                     FullAddress = n.Ward == null
                         ? n.Address
                         : (n.Address ?? string.Empty) + ", " + n.Ward.Name
                             + (n.Ward.Parent != null ? ", " + n.Ward.Parent.Name : string.Empty)
                             + ", " + n.Ward.Country.Name,
-
                     WardInfo = n.Ward == null ? null : new WardInfoDto
                     {
                         Id = n.Ward.Id,
@@ -63,14 +61,10 @@ namespace Application.UseCase
                         },
                         Country = new CountryDto { Id = n.Ward.Country.Id, Name = n.Ward.Country.Name }
                     }
-                });
+                })
+                .AsAsyncEnumerable();
 
-            
-            var result = new List<NewsDto>();
-            await foreach (var news in query.AsAsyncEnumerable().WithCancellation(ct))
-                result.Add(news);
-
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

@@ -17,24 +17,20 @@ namespace Presentation.API.Controllers
         }
 
         // GET /api/address/countries
-        
         [HttpGet("countries")]
-        public async Task<ActionResult<List<CountryDto>>> GetCountries(CancellationToken ct)
+        public async Task<IAsyncEnumerable<CountryDto>> GetCountries(CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetCountryListRequest(), ct);
-            return Ok(result);
+            return await _mediator.Send(new GetCountryListRequest(), ct);
         }
 
-        // GET /api/address/wards?parentId=0   → Tỉnh/TP
-        // GET /api/address/wards?parentId= khác 0   → Phường/Xã 
-      
+        // GET /api/address/wards?parentId=0 → Tỉnh/TP
+        // GET /api/address/wards?parentId=2 → Phường/Xã thuộc TP HCM
         [HttpGet("wards")]
-        public async Task<ActionResult<List<WardDto>>> GetWards(
+        public async Task<IAsyncEnumerable<WardDto>> GetWards(
             [FromQuery] int parentId = 0,
             CancellationToken ct = default)
         {
-            var result = await _mediator.Send(new GetWardListRequest { ParentId = parentId }, ct);
-            return Ok(result);
+            return await _mediator.Send(new GetWardListRequest { ParentId = parentId }, ct);
         }
     }
 }

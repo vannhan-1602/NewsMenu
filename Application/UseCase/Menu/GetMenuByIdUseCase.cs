@@ -34,7 +34,7 @@ namespace Application.UseCase
                             Id = mn.News.Id,
                             Title = mn.News.Title,
                             IsPublished = mn.News.IsPublished
-                        }).ToList()
+                        }).ToArray()
                 })
                 .FirstOrDefaultAsync(ct);
         }

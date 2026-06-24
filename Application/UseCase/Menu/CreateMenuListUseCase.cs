@@ -27,8 +27,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // Gom toàn bộ NewsIds của mọi item lại, check tồn tại 1 lần duy nhất - tránh query lặp lại N lần
-                // Không ToList() - truyền thẳng IEnumerable, GetExistingIdsAsync chỉ enumerate đúng 1 lần
+                
                 var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
                 var existingNewsIds = allNewsIds.Any()
                     ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
@@ -44,7 +43,7 @@ namespace Application.UseCase
 
                 await _menuRepository.AddRangeAsync(menus, ct);
 
-                // Lưu cả batch Menu trước để mọi Menu có Id thật trước khi gán MenuNews
+                
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 var allLinks = new List<MenuNews>();

@@ -32,7 +32,7 @@ namespace Presentation.API.Controllers
             return Ok(result);
         }
 
-        // Sửa nhiều Menu trong 1 request }
+        // Sửa nhiều Menu trong 1 request 
         [HttpPut("batch")]
         public async Task<ActionResult<BaseResponse>> UpdateMany([FromBody] UpdateMenuListRequest request, CancellationToken ct)
         {
@@ -41,13 +41,12 @@ namespace Presentation.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<MenuDto>>> GetAll(
+        public async Task<IAsyncEnumerable<MenuDto>> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
             CancellationToken ct = default)
         {
-            var result = await _mediator.Send(new GetMenuListRequest { Page = page, PageSize = pageSize }, ct);
-            return Ok(result);
+            return await _mediator.Send(new GetMenuListRequest { Page = page, PageSize = pageSize }, ct);
         }
 
         [HttpGet("{id:int}")]
@@ -76,7 +75,7 @@ namespace Presentation.API.Controllers
             return Ok(result);
         }
 
-        // Xóa nhiều Menu trong 1 request 
+        // Xóa nhiều Menu trong 1 request
         [HttpDelete("batch")]
         public async Task<ActionResult<BaseResponse>> DeleteMany([FromBody] DeleteMenuListRequest request, CancellationToken ct)
         {

@@ -25,7 +25,7 @@ namespace Application.UseCase
             {
                 var ids = request.Ids.Distinct().ToList();
 
-                // Lấy toàn bộ Menu cần xóa trong 1 query, không loop GetByIdAsync từng cái
+               
                 var menus = new List<Menu>();
                 await foreach (var menu in _menuRepository.Query()
                     .Where(m => ids.Contains(m.Id))
@@ -38,7 +38,7 @@ namespace Application.UseCase
                 var foundIds = menus.Select(m => m.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                // Xóa mềm = update trạng thái hàng loạt, không có hàm SoftDelete riêng
+                
                 var allLinksToRemove = new List<MenuNews>();
                 foreach (var menu in menus)
                 {

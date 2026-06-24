@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCase.Address
 {
-    public class GetCountryListUseCase : IRequestHandler<GetCountryListRequest, List<CountryDto>>
+    public class GetCountryListUseCase : IRequestHandler<GetCountryListRequest, IAsyncEnumerable<CountryDto>>
     {
         private readonly ICountryRepository _countryRepository;
 
@@ -15,22 +15,14 @@ namespace Application.UseCase.Address
             _countryRepository = countryRepository;
         }
 
-        public async Task<List<CountryDto>> Handle(GetCountryListRequest request, CancellationToken ct)
+        public Task<IAsyncEnumerable<CountryDto>> Handle(GetCountryListRequest request, CancellationToken ct)
         {
-            //chỉ lấy Id + Name cho dropdown, không tải dư field
-            var query = _countryRepository.Query()
+            var result = _countryRepository.Query()
                 .OrderBy(c => c.Name)
-                .Select(c => new CountryDto
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                });
+                .Select(c => new CountryDto { Id = c.Id, Name = c.Name })
+                .AsAsyncEnumerable();
 
-            var result = new List<CountryDto>();
-            await foreach (var item in query.AsAsyncEnumerable().WithCancellation(ct))
-                result.Add(item);
-
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

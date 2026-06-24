@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Request.Address
 {
-    public class GetCountryListRequest : IRequest<List<CountryDto>>
+    public class GetCountryListRequest : IRequest<IAsyncEnumerable<CountryDto>>
     {
     }
 }

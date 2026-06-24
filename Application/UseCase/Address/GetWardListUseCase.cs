@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCase.Address
 {
-    public class GetWardListUseCase : IRequestHandler<GetWardListRequest, List<WardDto>>
+    public class GetWardListUseCase : IRequestHandler<GetWardListRequest, IAsyncEnumerable<WardDto>>
     {
         private readonly IWardRepository _wardRepository;
 
@@ -15,25 +15,15 @@ namespace Application.UseCase.Address
             _wardRepository = wardRepository;
         }
 
-        public async Task<List<WardDto>> Handle(GetWardListRequest request, CancellationToken ct)
+        public Task<IAsyncEnumerable<WardDto>> Handle(GetWardListRequest request, CancellationToken ct)
         {
-            // parentId = 0 = lấy Tỉnh/TP
-            // parentId != 0 = lấy Phường/Xã thuộc Tỉnh/TP đó
-            var query = _wardRepository.Query()
+            var result = _wardRepository.Query()
                 .Where(w => w.ParentId == request.ParentId)
                 .OrderBy(w => w.Name)
-                .Select(w => new WardDto
-                {
-                    Id = w.Id,
-                    Name = w.Name,
-                    ParentId = w.ParentId
-                });
+                .Select(w => new WardDto { Id = w.Id, Name = w.Name, ParentId = w.ParentId })
+                .AsAsyncEnumerable();
 
-            var result = new List<WardDto>();
-            await foreach (var item in query.AsAsyncEnumerable().WithCancellation(ct))
-                result.Add(item);
-
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

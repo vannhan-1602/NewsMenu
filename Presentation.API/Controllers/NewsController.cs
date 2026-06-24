@@ -39,13 +39,12 @@ namespace Presentation.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<NewsDto>>> GetAll(
+        public async Task<IAsyncEnumerable<NewsDto>> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var result = await _mediator.Send(new GetNewsListRequest { Page = page, PageSize = pageSize }, ct);
-            return Ok(result);
+            return await _mediator.Send(new GetNewsListRequest { Page = page, PageSize = pageSize }, ct);
         }
 
         [HttpGet("{id:int}")]

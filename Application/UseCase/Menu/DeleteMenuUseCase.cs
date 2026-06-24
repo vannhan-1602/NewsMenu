@@ -25,12 +25,11 @@ namespace Application.UseCase
                 if (menu == null)
                     return new BaseResponse { Success = false, Message = "Menu khong ton tai hoac da bi xoa" };
 
-                // Xóa mềm = update trạng thái, không cần hàm SoftDelete() riêng
-                // Bản chất chỉ là set 1 cột rồi gọi Update giống hệt update bình thường
+              
                 menu.IsDeleted = true;
                 _menuRepository.Update(menu);
 
-                // Dọn link bảng trung gian - DB không cascade vì đây là update, không phải DELETE thật
+               
                 var links = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                 if (links.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(links);
