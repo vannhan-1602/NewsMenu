@@ -21,6 +21,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                
                 var menu = await _menuRepository.GetByIdAsync(request.Id, ct);
                 if (menu == null)
                     return new BaseResponse { Success = false, Message = "Menu khong ton tai hoac da bi xoa" };
@@ -29,7 +30,7 @@ namespace Application.UseCase
                 menu.IsDeleted = true;
                 _menuRepository.Update(menu);
 
-               
+                //lấy liên kết giữa menu và news để xóa
                 var links = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                 if (links.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(links);

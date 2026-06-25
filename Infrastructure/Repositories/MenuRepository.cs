@@ -9,13 +9,14 @@ namespace Infrastructure.Repositories
     {
         public MenuRepository(AppDbContext context) : base(context) { }
 
+        // Lấy menu theo slug
         public async Task<Menu?> GetBySlugAsync(string slug, CancellationToken ct = default)
         {
             return await _dbSet
                 .Where(x => !x.IsDeleted && x.Slug == slug)
                 .FirstOrDefaultAsync(ct);
         }
-
+        // Lấy toàn bộ liên kết MenuNews theo menuId
         public async Task<List<MenuNews>> GetMenuNewsByMenuIdAsync(int menuId, CancellationToken ct = default)
         {
           
@@ -29,7 +30,7 @@ namespace Infrastructure.Repositories
             }
             return result;
         }
-
+        // Thêm liên kết MenuNews
         public void AddMenuNewsRange(IEnumerable<MenuNews> menuNews)
         {
             var now = DateTime.UtcNow;
@@ -37,7 +38,7 @@ namespace Infrastructure.Repositories
                 mn.AssignedAt = now;
             _context.MenuNews.AddRange(menuNews);
         }
-
+        // Xóa liên kết MenuNews
         public void RemoveMenuNewsRange(IEnumerable<MenuNews> menuNews)
         {
             _context.MenuNews.RemoveRange(menuNews);

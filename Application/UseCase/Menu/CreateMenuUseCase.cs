@@ -27,22 +27,24 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Tạo Menu
                 var menu = new Menu
                 {
                     Name = request.Name,
                     Slug = request.Slug,
                     DisplayOrder = request.DisplayOrder
                 };
-
+                
                 await _menuRepository.AddAsync(menu, ct);
 
+                // Lưu vào cơ sở dữ liệu để có được Id của Menu
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 var invalidIds = new List<int>();
 
                 if (request.NewsIds.Count > 0)
                 {
-                    // Chỉ gán những NewsId thực sự tồn tại trong DB
+                    // Lấy danh sách NewsId tồn tại trong db
                     var existingIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
                     var existingSet = new HashSet<int>(existingIds);
 
@@ -62,6 +64,7 @@ namespace Application.UseCase
                     }
                 }
 
+                //insert MenuNews+ commit transaction
                 await _unitOfWork.CommitAsync(ct);
 
                 var message = invalidIds.Count > 0

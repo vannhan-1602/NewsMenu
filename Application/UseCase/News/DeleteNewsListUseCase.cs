@@ -23,6 +23,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Lấy danh sách Ids duy nhất từ request
                 var ids = request.Ids.Distinct().ToList();
                 var newsList = new List<News>();
                 await foreach (var news in _newsRepository.Query()
@@ -43,9 +44,10 @@ namespace Application.UseCase
                     var links = await _newsRepository.GetMenuNewsByNewsIdAsync(news.Id, ct);
                     allLinksToRemove.AddRange(links);
                 }
-
+                // Cập nhật trạng thái IsDeleted cho các News
                 if (newsList.Count > 0)
                     _newsRepository.UpdateRange(newsList);
+                // Xóa các liên kết MenuNews
                 if (allLinksToRemove.Count > 0)
                     _newsRepository.RemoveMenuNewsRange(allLinksToRemove);
 

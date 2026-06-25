@@ -28,8 +28,12 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Lấy tất cả menu theo danh sách Id từ request
                 var ids = request.Items.Select(x => x.Id).ToList();
                 var menus = new List<Menu>();
+
+                // Sử dụng AsAsyncEnumerable để xử lý dữ liệu theo từng phần
+                // tránh tải toàn bộ vào bộ nhớ
                 await foreach (var menu in _menuRepository.Query()
                     .Where(m => ids.Contains(m.Id))
                     .AsAsyncEnumerable()
@@ -37,17 +41,26 @@ namespace Application.UseCase
                 {
                     menus.Add(menu);
                 }
+
+                // Tạo dictionary để tra cứu nhanh menu theo Id
                 var menuDict = menus.ToDictionary(m => m.Id);
+
+                // Lấy tất cả NewsIds từ request và bỏ trùng lặp
                 var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
+
+                // Lấy danh sách NewsId tồn tại trong db
                 var existingNewsIds = allNewsIds.Any()
                     ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
                     : new List<int>();
                 var existingNewsSet = new HashSet<int>(existingNewsIds);
 
                 int notFoundCount = 0, totalInvalid = 0;
+
+                // Danh sách các liên kết MenuNews cần thêm và xóa
                 var allToAdd = new List<MenuNews>();
                 var allToRemove = new List<MenuNews>();
 
+                // Cập nhật từng menu theo request
                 foreach (var item in request.Items)
                 {
                     if (!menuDict.TryGetValue(item.Id, out var menu))
@@ -55,23 +68,27 @@ namespace Application.UseCase
                         notFoundCount++;
                         continue;
                     }
-
+                    // Cập nhật thông tin menu
                     menu.Name = item.Name;
                     menu.Slug = item.Slug;
                     menu.DisplayOrder = item.DisplayOrder;
-
+                    // Lọc các NewsId hợp lệ
                     var validIds = item.NewsIds.Distinct().Where(existingNewsSet.Contains).ToList();
+
+                    // Tính số lượng NewsId không hợp lệ
                     totalInvalid += item.NewsIds.Distinct().Count() - validIds.Count;
 
                     var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                     allToRemove.AddRange(currentLinks);
                     allToAdd.AddRange(validIds.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId }));
                 }
-
+                //cập nhập all menu
                 if (menus.Count > 0)
                     _menuRepository.UpdateRange(menus);
+                //xóa các liên kết cũ
                 if (allToRemove.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(allToRemove);
+                //thêm các liên kết mới
                 if (allToAdd.Count > 0)
                     _menuRepository.AddMenuNewsRange(allToAdd);
 

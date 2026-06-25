@@ -30,7 +30,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-               
+                // Kiểm tra WardId nếu có
                 int? wardId = null;
                 bool wardInvalid = false;
                 if (request.WardId.HasValue)
@@ -45,7 +45,7 @@ namespace Application.UseCase
                         wardInvalid = true;
                     }
                 }
-
+                // Tạo News mới
                 var news = new News
                 {
                     Title = request.Title,
@@ -62,7 +62,7 @@ namespace Application.UseCase
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 var invalidIds = new List<int>();
-
+                
                 if (request.MenuIds.Count > 0)
                 {
                     var existingIds = await _menuRepository.GetExistingIdsAsync(request.MenuIds, ct);

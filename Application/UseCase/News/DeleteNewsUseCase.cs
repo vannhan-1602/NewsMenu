@@ -21,6 +21,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Lấy news từ cơ sở dữ liệu
                 var news = await _newsRepository.GetByIdAsync(request.Id, ct);
                 if (news == null)
                     return new BaseResponse { Success = false, Message = "News khong ton tai hoac da bi xoa" };
@@ -28,6 +29,7 @@ namespace Application.UseCase
                 news.IsDeleted = true;
                 _newsRepository.Update(news);
 
+                // Xóa các liên kết MenuNews liên quan đến News
                 var links = await _newsRepository.GetMenuNewsByNewsIdAsync(news.Id, ct);
                 if (links.Count > 0)
                     _newsRepository.RemoveMenuNewsRange(links);

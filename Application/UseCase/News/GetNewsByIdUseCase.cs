@@ -18,7 +18,7 @@ namespace Application.UseCase
         public async Task<NewsDto?> Handle(GetNewsByIdRequest request, CancellationToken ct)
         {
             
-            //phép đệ quy 1 cấp (Phường -> Tỉnh/TP)
+           
             return await _newsRepository.Query()
                 .Where(n => n.Id == request.Id)
                 .Select(n => new NewsDto

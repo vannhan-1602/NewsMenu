@@ -23,14 +23,14 @@ namespace Presentation.API.Controllers
             var result = await _mediator.Send(request, ct);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
-
+        // Tạo nhiều News trong 1 request
         [HttpPost("batch")]
         public async Task<ActionResult<BaseResponse>> CreateMany([FromBody] CreateNewsListRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(request, ct);
             return Ok(result);
         }
-
+        // Cập nhật nhiều News trong 1 request
         [HttpPut("batch")]
         public async Task<ActionResult<BaseResponse>> UpdateMany([FromBody] UpdateNewsListRequest request, CancellationToken ct)
         {
@@ -72,7 +72,7 @@ namespace Presentation.API.Controllers
             var result = await _mediator.Send(new DeleteNewsRequest(id), ct);
             return Ok(result);
         }
-
+        // Xóa nhiều News trong 1 request
         [HttpDelete("batch")]
         public async Task<ActionResult<BaseResponse>> DeleteMany([FromBody] DeleteNewsListRequest request, CancellationToken ct)
         {

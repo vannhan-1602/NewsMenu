@@ -27,13 +27,17 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                
+                // Lấy tất cả NewsIds từ request
+                // và kiểm tra xem chúng có tồn tại trong db
                 var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
                 var existingNewsIds = allNewsIds.Any()
                     ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
                     : new List<int>();
+
+                // chuyển sang HashSet để tăng tốc độ kiểm tra tồn tại
                 var existingNewsSet = new HashSet<int>(existingNewsIds);
 
+                // Tạo danh sách Menu từ request
                 var menus = request.Items.Select(item => new Menu
                 {
                     Name = item.Name,
@@ -51,9 +55,12 @@ namespace Application.UseCase
 
                 for (int i = 0; i < request.Items.Count; i++)
                 {
+                    // Lọc ra các NewsIds hợp lệ
                     var validIds = request.Items[i].NewsIds.Distinct().Where(existingNewsSet.Contains).ToList();
+                    // Cập nhật tổng số NewsIds không hợp lệ
                     totalInvalid += request.Items[i].NewsIds.Distinct().Count() - validIds.Count;
 
+                    // Tạo các liên kết MenuNews cho các NewsIds hợp lệ
                     allLinks.AddRange(validIds.Select(newsId => new MenuNews
                     {
                         MenuId = menus[i].Id,

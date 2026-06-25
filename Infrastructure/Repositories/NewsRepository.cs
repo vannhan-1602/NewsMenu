@@ -8,7 +8,7 @@ namespace Infrastructure.Repositories
     public class NewsRepository : BaseRepository<News>, INewsRepository
     {
         public NewsRepository(AppDbContext context) : base(context) { }
-
+        //lấy quan hệ menu-news theo newsId
         public async Task<List<MenuNews>> GetMenuNewsByNewsIdAsync(int newsId, CancellationToken ct = default)
         {
            
@@ -22,7 +22,7 @@ namespace Infrastructure.Repositories
             }
             return result;
         }
-
+        //thêm quan hệ menu-news
         public void AddMenuNewsRange(IEnumerable<MenuNews> menuNews)
         {
             var now = DateTime.UtcNow;
@@ -31,7 +31,7 @@ namespace Infrastructure.Repositories
 
             _context.MenuNews.AddRange(menuNews);
         }
-
+        //xóa quan hệ menu-news
         public void RemoveMenuNewsRange(IEnumerable<MenuNews> menuNews)
         {
             _context.MenuNews.RemoveRange(menuNews);

@@ -42,11 +42,13 @@ namespace Application.UseCase
                             DisplayOrder = mn.Menu.DisplayOrder,
                             CreatedAt = mn.Menu.CreatedAt
                         }).ToArray(),
+                    // Cách 1: cộng chuỗi - address + Ward + Ward.Parent (đệ quy) + Country
                     FullAddress = n.Ward == null
                         ? n.Address
                         : (n.Address ?? string.Empty) + ", " + n.Ward.Name
                             + (n.Ward.Parent != null ? ", " + n.Ward.Parent.Name : string.Empty)
                             + ", " + n.Ward.Country.Name,
+                    // Cách 2: lồng object qua đệ quy Ward.Parent
                     WardInfo = n.Ward == null ? null : new WardInfoDto
                     {
                         Id = n.Ward.Id,

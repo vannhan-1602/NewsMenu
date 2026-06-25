@@ -27,6 +27,7 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Lấy menu từ cơ sở dữ liệu
                 var menu = await _menuRepository.GetByIdAsync(request.Id, ct);
                 if (menu == null)
                     return new BaseResponse { Success = false, Message = "Menu khong ton tai hoac da bi xoa" };
@@ -49,8 +50,9 @@ namespace Application.UseCase
                         .Where(id => !existingSet.Contains(id))
                         .ToList();
                 }
-
+                
                 var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
+               
                 if (currentLinks.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(currentLinks);
 

@@ -23,9 +23,10 @@ namespace Application.UseCase
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
+                // Lấy danh sách Ids duy nhất từ request
                 var ids = request.Ids.Distinct().ToList();
 
-               
+                // Lấy danh sách menu từ cơ sở dữ liệu dựa trên danh sách Ids
                 var menus = new List<Menu>();
                 await foreach (var menu in _menuRepository.Query()
                     .Where(m => ids.Contains(m.Id))
@@ -34,21 +35,25 @@ namespace Application.UseCase
                 {
                     menus.Add(menu);
                 }
-
+                //tìm id tồn tại trong db
                 var foundIds = menus.Select(m => m.Id).ToHashSet();
+                //tìm id không tồn tại trong db
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                
+                //danh sách MenuNews cần xóa
                 var allLinksToRemove = new List<MenuNews>();
+
                 foreach (var menu in menus)
                 {
                     menu.IsDeleted = true;
+                    // Lấy danh sách MenuNews liên quan đến menu hiện tại
                     var links = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                     allLinksToRemove.AddRange(links);
                 }
-
+                // Cập nhật trạng thái IsDeleted của các menu
                 if (menus.Count > 0)
                     _menuRepository.UpdateRange(menus);
+                // Xóa các liên kết MenuNews
                 if (allLinksToRemove.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(allLinksToRemove);
 
