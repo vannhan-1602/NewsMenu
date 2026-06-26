@@ -15,21 +15,20 @@ namespace Infrastructure.Persistence.Configurations
                    .HasColumnName("news_id")
                    .ValueGeneratedOnAdd();
 
-            builder.Property(n => n.Title).HasColumnName("title").HasMaxLength(500).IsRequired();
-            builder.Property(n => n.Content).HasColumnName("content").IsRequired();
-            builder.Property(n => n.Summary).HasColumnName("summary").HasMaxLength(1000);
+            builder.Property(n => n.Title).HasColumnName("title");
+            builder.Property(n => n.Content).HasColumnName("content");
+            builder.Property(n => n.Summary).HasColumnName("summary");
             builder.Property(n => n.IsPublished).HasColumnName("is_published");
             builder.Property(n => n.IsDeleted).HasColumnName("is_deleted");
             builder.Property(n => n.CreatedAt).HasColumnName("created_at");
             builder.Property(n => n.UpdatedAt).HasColumnName("updated_at");
 
             builder.Property(n => n.WardId).HasColumnName("ward_id");
-            builder.Property(n => n.Address).HasColumnName("address").HasMaxLength(500);
+            builder.Property(n => n.Address).HasColumnName("address");
 
             builder.HasOne(n => n.Ward)
                    .WithMany()
-                   .HasForeignKey(n => n.WardId)
-                   .OnDelete(DeleteBehavior.ClientSetNull);
+                   .HasForeignKey(n => n.WardId);
         }
     }
 }

@@ -9,8 +9,8 @@ CREATE TABLE Countries (
     updated_at  DATETIME2    NOT NULL DEFAULT GETUTCDATE()
 );
 
--- 2. Bảng Wards (Tỉnh/TP và Phường/Xã - tự đệ quy)
---    parent_id = 0    Tỉnh/TP (gốc, không có cha)
+-- 2. Bảng Wards (Tỉnh/TP và Phường/Xã )
+--    parent_id = 0    Tỉnh/TP 
 --    parent_id = N    Phường/Xã thuộc Tỉnh/TP có ward_id = N
 CREATE TABLE Wards (
     ward_id     INT IDENTITY(1,1) PRIMARY KEY,

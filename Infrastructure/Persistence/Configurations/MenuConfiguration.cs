@@ -13,10 +13,10 @@ namespace Infrastructure.Persistence.Configurations
             builder.HasKey(m => m.Id);
             builder.Property(m => m.Id)
                    .HasColumnName("menu_id")
-                   .ValueGeneratedOnAdd(); 
+                   .ValueGeneratedOnAdd();
 
-            builder.Property(m => m.Name).HasColumnName("name").HasMaxLength(255).IsRequired();
-            builder.Property(m => m.Slug).HasColumnName("slug").HasMaxLength(255).IsRequired();
+            builder.Property(m => m.Name).HasColumnName("name");
+            builder.Property(m => m.Slug).HasColumnName("slug");
             builder.Property(m => m.DisplayOrder).HasColumnName("display_order");
             builder.Property(m => m.IsDeleted).HasColumnName("is_deleted");
             builder.Property(m => m.CreatedAt).HasColumnName("created_at");

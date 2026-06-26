@@ -15,7 +15,7 @@ namespace Infrastructure.Persistence.Configurations
                    .HasColumnName("ward_id")
                    .ValueGeneratedOnAdd();
 
-            builder.Property(w => w.Name).HasColumnName("name").HasMaxLength(255).IsRequired();
+            builder.Property(w => w.Name).HasColumnName("name");
             builder.Property(w => w.ParentId).HasColumnName("parent_id").HasDefaultValue(0);
             builder.Property(w => w.CountryId).HasColumnName("country_id");
             builder.Property(w => w.IsDeleted).HasColumnName("is_deleted");
@@ -24,13 +24,11 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.HasOne(w => w.Parent)
                    .WithMany(w => w.Children)
-                   .HasForeignKey(w => w.ParentId)
-                   .OnDelete(DeleteBehavior.ClientSetNull);
+                   .HasForeignKey(w => w.ParentId);
 
             builder.HasOne(w => w.Country)
                    .WithMany(c => c.Wards)
-                   .HasForeignKey(w => w.CountryId)
-                   .OnDelete(DeleteBehavior.ClientSetNull);
+                   .HasForeignKey(w => w.CountryId);
         }
     }
 }

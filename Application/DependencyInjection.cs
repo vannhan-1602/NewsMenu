@@ -1,5 +1,5 @@
+using Application.Mappings;
 using FluentValidation;
-
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -14,13 +14,16 @@ namespace Application
             // Đăng ký toàn bộ UseCase (IRequestHandler) trong assembly Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
-            // Đăng ký toàn bộ Validator 
+            // Đăng ký toàn bộ Validator
             services.AddValidatorsFromAssembly(assembly);
 
             // ValidationBehavior (pipeline) - chạy validator trước UseCase
             services.AddTransient(
                 typeof(MediatR.IPipelineBehavior<,>),
                 typeof(Application.Behaviors.ValidationBehavior<,>));
+
+            // Đăng ký AutoMapper với profile trong assembly này
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             return services;
         }

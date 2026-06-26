@@ -24,18 +24,16 @@ namespace Application.UseCase
 
         public async Task<BaseResponse> Handle(CreateNewsListRequest request, CancellationToken ct)
         {
+            // Validate tất cả menu ids trước khi mở transaction
+            var allMenuIds = request.Items.SelectMany(item => item.MenuIds).Distinct();
+            var existingMenuIds = allMenuIds.Any()
+                ? await _menuRepository.GetExistingIdsAsync(allMenuIds, ct)
+                : new List<int>();
+            var existingMenuIdSet = new HashSet<int>(existingMenuIds);
+
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                //lấy tất cả MenuId từ request, kiểm tra xem có tồn tại trong db
-                var allMenuIds = request.Items.SelectMany(x => x.MenuIds).Distinct();
-                var existingMenuIds = allMenuIds.Any()
-                    ? await _menuRepository.GetExistingIdsAsync(allMenuIds, ct)
-                    : new List<int>();
-                // Tạo HashSet để kiểm tra tồn tại nhanh hơn
-                var existingMenuSet = new HashSet<int>(existingMenuIds);
-
-                // Tạo danh sách News từ request
                 var newsList = request.Items.Select(item => new News
                 {
                     Title = item.Title,
@@ -43,35 +41,33 @@ namespace Application.UseCase
                     Summary = item.Summary,
                     IsPublished = item.IsPublished
                 }).ToList();
-               
-                await _newsRepository.AddRangeAsync(newsList, ct);
 
+                await _newsRepository.AddRangeAsync(newsList, ct);
                 await _unitOfWork.SaveChangesAsync(ct);
 
-                var allLinks = new List<MenuNews>();
-                var totalInvalid = 0;
+                var allMenuNewsLinks = new List<MenuNews>();
+                int totalInvalidMenuCount = 0;
 
-                for (int i = 0; i < request.Items.Count; i++)
+                for (int index = 0; index < request.Items.Count; index++)
                 {
-                    var validIds = request.Items[i].MenuIds.Distinct().Where(existingMenuSet.Contains).ToList();
-                    totalInvalid += request.Items[i].MenuIds.Distinct().Count() - validIds.Count;
+                    var validMenuIds = request.Items[index].MenuIds.Distinct().Where(existingMenuIdSet.Contains).ToList();
+                    totalInvalidMenuCount += request.Items[index].MenuIds.Distinct().Count() - validMenuIds.Count;
 
-                    // Tạo các liên kết MenuNews cho các MenuId hợp lệ
-                    allLinks.AddRange(validIds.Select(menuId => new MenuNews
+                    allMenuNewsLinks.AddRange(validMenuIds.Select(menuId => new MenuNews
                     {
                         MenuId = menuId,
-                        NewsId = newsList[i].Id
+                        NewsId = newsList[index].Id
                     }));
                 }
 
-                if (allLinks.Count > 0)
-                    _newsRepository.AddMenuNewsRange(allLinks);
+                if (allMenuNewsLinks.Count > 0)
+                    _newsRepository.AddMenuNewsRange(allMenuNewsLinks);
 
                 await _unitOfWork.CommitAsync(ct);
 
-                var message = totalInvalid > 0
-                    ? $"Tao {newsList.Count} news thanh cong. {totalInvalid} MenuId khong hop le da bi bo qua."
-                    : $"Tao {newsList.Count} news thanh cong";
+                var message = totalInvalidMenuCount > 0
+                    ? $"Tạo {newsList.Count} news thành công. {totalInvalidMenuCount} MenuId không hợp lệ đã bị bỏ qua."
+                    : $"Tạo {newsList.Count} news thành công.";
 
                 return new BaseResponse { Success = true, Message = message };
             }

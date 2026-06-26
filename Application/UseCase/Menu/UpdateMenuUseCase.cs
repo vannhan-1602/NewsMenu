@@ -1,5 +1,6 @@
 using Application.Common;
 using Application.Request.Menu;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
@@ -11,64 +12,67 @@ namespace Application.UseCase
         private readonly IMenuRepository _menuRepository;
         private readonly INewsRepository _newsRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
         public UpdateMenuUseCase(
             IMenuRepository menuRepository,
             INewsRepository newsRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IMapper mapper)
         {
             _menuRepository = menuRepository;
             _newsRepository = newsRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<BaseResponse> Handle(UpdateMenuRequest request, CancellationToken ct)
         {
+            // Validate news ids trước khi mở transaction
+            var validNewsIds = new List<int>();
+            var invalidNewsIds = new List<int>();
+            if (request.NewsIds.Count > 0)
+            {
+                var existingNewsIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
+                var existingNewsIdSet = new HashSet<int>(existingNewsIds);
+                validNewsIds = existingNewsIds;
+                invalidNewsIds = request.NewsIds.Distinct().Where(id => !existingNewsIdSet.Contains(id)).ToList();
+            }
+
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // Lấy menu từ cơ sở dữ liệu
                 var menu = await _menuRepository.GetByIdAsync(request.Id, ct);
                 if (menu == null)
-                    return new BaseResponse { Success = false, Message = "Menu khong ton tai hoac da bi xoa" };
+                    return new BaseResponse { Success = false, Message = "Menu không tồn tại hoặc đã bị xóa." };
 
-                menu.Name = request.Name;
-                menu.Slug = request.Slug;
-                menu.DisplayOrder = request.DisplayOrder;
+                _mapper.Map(request, menu);
                 _menuRepository.Update(menu);
 
-                var invalidIds = new List<int>();
-                var existingIds = new List<int>();
-
-                if (request.NewsIds.Count > 0)
-                {
-                    existingIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
-                    var existingSet = new HashSet<int>(existingIds);
-
-                    invalidIds = request.NewsIds
-                        .Distinct()
-                        .Where(id => !existingSet.Contains(id))
-                        .ToList();
-                }
-                
+                // Diff-based: chỉ xóa link không còn dùng, chỉ thêm link mới
                 var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
-               
-                if (currentLinks.Count > 0)
-                    _menuRepository.RemoveMenuNewsRange(currentLinks);
+                var currentNewsIdSet = currentLinks.Select(link => link.NewsId).ToHashSet();
+                var newNewsIdSet = new HashSet<int>(validNewsIds);
 
-                if (existingIds.Count > 0)
+                var linksToRemove = currentLinks.Where(link => !newNewsIdSet.Contains(link.NewsId)).ToList();
+                var newsIdsToAdd = validNewsIds.Where(newsId => !currentNewsIdSet.Contains(newsId)).ToList();
+
+                if (linksToRemove.Count > 0)
+                    _menuRepository.RemoveMenuNewsRange(linksToRemove);
+
+                if (newsIdsToAdd.Count > 0)
                 {
-                    var newLinks = existingIds.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId });
+                    var newLinks = newsIdsToAdd.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId });
                     _menuRepository.AddMenuNewsRange(newLinks);
                 }
 
                 await _unitOfWork.CommitAsync(ct);
 
-                var message = invalidIds.Count > 0
-                    ? $"Cap nhat menu thanh cong. {invalidIds.Count} NewsId khong hop le da bi bo qua."
-                    : "Cap nhat menu thanh cong";
+                var message = invalidNewsIds.Count > 0
+                    ? $"Cập nhật menu thành công. {invalidNewsIds.Count} NewsId không hợp lệ đã bị bỏ qua."
+                    : "Cập nhật menu thành công.";
 
-                return new BaseResponse { Success = true, Message = message, Id = menu.Id, InvalidIds = invalidIds };
+                return new BaseResponse { Success = true, Message = message, Id = menu.Id, InvalidIds = invalidNewsIds };
             }
             catch
             {

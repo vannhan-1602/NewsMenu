@@ -1,5 +1,6 @@
 using Application.Common;
 using Application.Request.Menu;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
@@ -12,93 +13,87 @@ namespace Application.UseCase
         private readonly IMenuRepository _menuRepository;
         private readonly INewsRepository _newsRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
         public UpdateMenuListUseCase(
             IMenuRepository menuRepository,
             INewsRepository newsRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IMapper mapper)
         {
             _menuRepository = menuRepository;
             _newsRepository = newsRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<BaseResponse> Handle(UpdateMenuListRequest request, CancellationToken ct)
         {
+            // Validate tất cả news ids trước khi mở transaction
+            var allNewsIds = request.Items.SelectMany(item => item.NewsIds).Distinct();
+            var existingNewsIds = allNewsIds.Any()
+                ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
+                : new List<int>();
+            var existingNewsIdSet = new HashSet<int>(existingNewsIds);
+
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // Lấy tất cả menu theo danh sách Id từ request
-                var ids = request.Items.Select(x => x.Id).ToList();
-                var menus = new List<Menu>();
-
-                // Sử dụng AsAsyncEnumerable để xử lý dữ liệu theo từng phần
-                // tránh tải toàn bộ vào bộ nhớ
+                var requestedIds = request.Items.Select(item => item.Id).ToList();
+                var menuList = new List<Menu>();
                 await foreach (var menu in _menuRepository.Query()
-                    .Where(m => ids.Contains(m.Id))
+                    .Where(m => requestedIds.Contains(m.Id))
                     .AsAsyncEnumerable()
                     .WithCancellation(ct))
                 {
-                    menus.Add(menu);
+                    menuList.Add(menu);
                 }
 
-                // Tạo dictionary để tra cứu nhanh menu theo Id
-                var menuDict = menus.ToDictionary(m => m.Id);
+                var menuLookup = menuList.ToDictionary(menu => menu.Id);
 
-                // Lấy tất cả NewsIds từ request và bỏ trùng lặp
-                var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
+                int notFoundCount = 0;
+                int totalInvalidNewsCount = 0;
+                var linksToAdd = new List<MenuNews>();
+                var linksToRemove = new List<MenuNews>();
 
-                // Lấy danh sách NewsId tồn tại trong db
-                var existingNewsIds = allNewsIds.Any()
-                    ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
-                    : new List<int>();
-                var existingNewsSet = new HashSet<int>(existingNewsIds);
-
-                int notFoundCount = 0, totalInvalid = 0;
-
-                // Danh sách các liên kết MenuNews cần thêm và xóa
-                var allToAdd = new List<MenuNews>();
-                var allToRemove = new List<MenuNews>();
-
-                // Cập nhật từng menu theo request
                 foreach (var item in request.Items)
                 {
-                    if (!menuDict.TryGetValue(item.Id, out var menu))
+                    if (!menuLookup.TryGetValue(item.Id, out var menu))
                     {
                         notFoundCount++;
                         continue;
                     }
-                    // Cập nhật thông tin menu
-                    menu.Name = item.Name;
-                    menu.Slug = item.Slug;
-                    menu.DisplayOrder = item.DisplayOrder;
-                    // Lọc các NewsId hợp lệ
-                    var validIds = item.NewsIds.Distinct().Where(existingNewsSet.Contains).ToList();
 
-                    // Tính số lượng NewsId không hợp lệ
-                    totalInvalid += item.NewsIds.Distinct().Count() - validIds.Count;
+                    _mapper.Map(item, menu);
 
+                    var validNewsIdsForItem = item.NewsIds.Distinct().Where(existingNewsIdSet.Contains).ToList();
+                    totalInvalidNewsCount += item.NewsIds.Distinct().Count() - validNewsIdsForItem.Count;
+
+                    // Diff-based: chỉ xóa link không còn dùng, chỉ thêm link mới
                     var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
-                    allToRemove.AddRange(currentLinks);
-                    allToAdd.AddRange(validIds.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId }));
+                    var currentNewsIdSet = currentLinks.Select(link => link.NewsId).ToHashSet();
+                    var newNewsIdSet = new HashSet<int>(validNewsIdsForItem);
+
+                    linksToRemove.AddRange(currentLinks.Where(link => !newNewsIdSet.Contains(link.NewsId)));
+                    linksToAdd.AddRange(validNewsIdsForItem
+                        .Where(newsId => !currentNewsIdSet.Contains(newsId))
+                        .Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId }));
                 }
-                //cập nhập all menu
-                if (menus.Count > 0)
-                    _menuRepository.UpdateRange(menus);
-                //xóa các liên kết cũ
-                if (allToRemove.Count > 0)
-                    _menuRepository.RemoveMenuNewsRange(allToRemove);
-                //thêm các liên kết mới
-                if (allToAdd.Count > 0)
-                    _menuRepository.AddMenuNewsRange(allToAdd);
+
+                if (menuList.Count > 0)
+                    _menuRepository.UpdateRange(menuList);
+                if (linksToRemove.Count > 0)
+                    _menuRepository.RemoveMenuNewsRange(linksToRemove);
+                if (linksToAdd.Count > 0)
+                    _menuRepository.AddMenuNewsRange(linksToAdd);
 
                 await _unitOfWork.CommitAsync(ct);
 
-                var parts = new List<string> { $"Cap nhat {menus.Count} menu thanh cong" };
-                if (notFoundCount > 0) parts.Add($"{notFoundCount} Id khong ton tai");
-                if (totalInvalid > 0) parts.Add($"{totalInvalid} NewsId khong hop le da bi bo qua");
+                var messageParts = new List<string> { $"Cập nhật {menuList.Count} menu thành công." };
+                if (notFoundCount > 0) messageParts.Add($"{notFoundCount} Id không tồn tại.");
+                if (totalInvalidNewsCount > 0) messageParts.Add($"{totalInvalidNewsCount} NewsId không hợp lệ đã bị bỏ qua.");
 
-                return new BaseResponse { Success = true, Message = string.Join(". ", parts) };
+                return new BaseResponse { Success = true, Message = string.Join(" ", messageParts) };
             }
             catch
             {

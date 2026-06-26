@@ -17,7 +17,7 @@ namespace Application.UseCase
 
         public async Task<MenuDto?> Handle(GetMenuByIdRequest request, CancellationToken ct)
         {
-          
+
             return await _menuRepository.Query()
                 .Where(m => m.Id == request.Id)
                 .Select(m => new MenuDto

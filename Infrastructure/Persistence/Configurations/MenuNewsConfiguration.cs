@@ -17,13 +17,11 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.HasOne(mn => mn.Menu)
                    .WithMany(m => m.MenuNewsList)
-                   .HasForeignKey(mn => mn.MenuId)
-                   .OnDelete(DeleteBehavior.ClientSetNull);
+                   .HasForeignKey(mn => mn.MenuId);
 
             builder.HasOne(mn => mn.News)
                    .WithMany(n => n.MenuNewsList)
-                   .HasForeignKey(mn => mn.NewsId)
-                   .OnDelete(DeleteBehavior.ClientSetNull);
+                   .HasForeignKey(mn => mn.NewsId);
         }
     }
 }
