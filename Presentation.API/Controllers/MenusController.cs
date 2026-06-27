@@ -82,5 +82,19 @@ namespace Presentation.API.Controllers
             var result = await _mediator.Send(request, ct);
             return Ok(result);
         }
+        // Lấy danh sách Menu đã xóa
+        [HttpGet("deleted")]
+        public async Task<IActionResult> GetDeletedListAsync([FromQuery] GetDeletedMenuListRequest request, CancellationToken ct)
+        {
+            var result = await _mediator.Send(request, ct);
+            return Ok(result);
+        }
+        // Khôi phục Menu đã xóa
+        [HttpPatch("{id:int}/restore")]
+        public async Task<IActionResult> RestoreAsync(int id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new RestoreMenuRequest { Id = id }, ct);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

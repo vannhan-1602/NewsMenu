@@ -78,5 +78,21 @@ namespace Infrastructure.Repositories
                 entity.UpdatedAt = now;
             _dbSet.UpdateRange(entities);
         }
+        //lay danh sach da xoa
+        public IQueryable<T> QueryDeleted()
+        {
+            return _dbSet.Where(x => x.IsDeleted).AsNoTracking();
+        }
+
+        public void Restore(T entity)
+        {
+            entity.IsDeleted = false;
+            entity.UpdatedAt = DateTime.UtcNow;
+            _dbSet.Update(entity);
+        }
+        public async Task<T?> GetByIdIncludeDeletedAsync(int id, CancellationToken ct = default)
+        {
+            return await _dbSet.Where(x => x.Id == id).FirstOrDefaultAsync(ct);
+        }
     }
 }

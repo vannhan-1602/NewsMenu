@@ -13,7 +13,9 @@ namespace Domain.Interfaces
 
         Task AddAsync(T entity, CancellationToken ct = default);
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
-
+        IQueryable<T> QueryDeleted();
+        Task<T?> GetByIdIncludeDeletedAsync(int id, CancellationToken ct = default);
+        void Restore(T entity);
         void Update(T entity);
         void UpdateRange(IEnumerable<T> entities);
     }

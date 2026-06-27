@@ -79,5 +79,19 @@ namespace Presentation.API.Controllers
             var result = await _mediator.Send(request, ct);
             return Ok(result);
         }
+        // Lấy danh sách các News đã bị xóa mềm
+        [HttpGet("deleted")]
+        public async Task<IActionResult> GetDeletedListAsync([FromQuery] GetDeletedNewsListRequest request, CancellationToken ct)
+        {
+            var result = await _mediator.Send(request, ct);
+            return Ok(result);
+        }
+        // Khôi phục News đã bị xóa mềm
+        [HttpPatch("{id:int}/restore")]
+        public async Task<IActionResult> RestoreAsync(int id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new RestoreNewsRequest { Id = id }, ct);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

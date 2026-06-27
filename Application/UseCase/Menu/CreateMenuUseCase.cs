@@ -24,52 +24,40 @@ namespace Application.UseCase
 
         public async Task<BaseResponse> Handle(CreateMenuRequest request, CancellationToken ct)
         {
+            // Validate news ids trước khi mở transaction
+            var invalidIds = new List<int>();
+            var existingIds = new List<int>();
+            if (request.NewsIds.Count > 0)
+            {
+                existingIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
+                var existingSet = new HashSet<int>(existingIds);
+                invalidIds = request.NewsIds.Distinct().Where(id => !existingSet.Contains(id)).ToList();
+            }
+
             await _unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                // Tạo Menu
                 var menu = new Menu
                 {
                     Name = request.Name,
                     Slug = request.Slug,
                     DisplayOrder = request.DisplayOrder
                 };
-                
-                await _menuRepository.AddAsync(menu, ct);
 
-                // Lưu vào cơ sở dữ liệu để có được Id của Menu
+                await _menuRepository.AddAsync(menu, ct);
                 await _unitOfWork.SaveChangesAsync(ct);
 
-                var invalidIds = new List<int>();
-
-                if (request.NewsIds.Count > 0)
+                if (existingIds.Count > 0)
                 {
-                    // Lấy danh sách NewsId tồn tại trong db
-                    var existingIds = await _newsRepository.GetExistingIdsAsync(request.NewsIds, ct);
-                    var existingSet = new HashSet<int>(existingIds);
-
-                    invalidIds = request.NewsIds
-                        .Distinct()
-                        .Where(id => !existingSet.Contains(id))
-                        .ToList();
-
-                    if (existingIds.Count > 0)
-                    {
-                        var links = existingIds.Select(newsId => new MenuNews
-                        {
-                            MenuId = menu.Id,
-                            NewsId = newsId
-                        });
-                        _menuRepository.AddMenuNewsRange(links);
-                    }
+                    var links = existingIds.Select(newsId => new MenuNews { MenuId = menu.Id, NewsId = newsId });
+                    _menuRepository.AddMenuNewsRange(links);
                 }
 
-                //insert MenuNews+ commit transaction
                 await _unitOfWork.CommitAsync(ct);
 
                 var message = invalidIds.Count > 0
-                    ? $"Tao menu thanh cong. {invalidIds.Count} NewsId khong ton tai da bi bo qua."
-                    : "Tao menu thanh cong";
+                    ? $"Tạo menu thành công. {invalidIds.Count} NewsId không tồn tại đã bị bỏ qua."
+                    : "Tạo menu thành công.";
 
                 return new BaseResponse { Success = true, Message = message, Id = menu.Id, InvalidIds = invalidIds };
             }
