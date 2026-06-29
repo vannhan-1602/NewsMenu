@@ -18,50 +18,50 @@ namespace Application.UseCase
         public Task<IAsyncEnumerable<NewsDto>> Handle(GetNewsListRequest request, CancellationToken ct)
         {
             var result = _newsRepository.Query()
-                .OrderByDescending(n => n.CreatedAt)
+                .OrderByDescending(news => news.CreatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Select(n => new NewsDto
+                .Select(news => new NewsDto
                 {
-                    Id = n.Id,
-                    Title = n.Title,
-                    Content = n.Content,
-                    Summary = n.Summary,
-                    IsPublished = n.IsPublished,
-                    CreatedAt = n.CreatedAt,
-                    UpdatedAt = n.UpdatedAt,
-                    Address = n.Address,
-                    WardId = n.WardId,
-                    Menus = n.MenuNewsList
-                        .Where(mn => !mn.Menu.IsDeleted)
-                        .Select(mn => new MenuDto
+                    Id = news.Id,
+                    Title = news.Title,
+                    Content = news.Content,
+                    Summary = news.Summary,
+                    IsPublished = news.IsPublished,
+                    CreatedAt = news.CreatedAt,
+                    UpdatedAt = news.UpdatedAt,
+                    Address = news.Address,
+                    WardId = news.WardId,
+                    Menus = news.MenuNewsList
+                        .Where(menuNews => !menuNews.Menu.IsDeleted)
+                        .Select(menuNews => new MenuDto
                         {
-                            Id = mn.Menu.Id,
-                            Name = mn.Menu.Name,
-                            Slug = mn.Menu.Slug,
-                            DisplayOrder = mn.Menu.DisplayOrder,
-                            CreatedAt = mn.Menu.CreatedAt
+                            Id = menuNews.Menu.Id,
+                            Name = menuNews.Menu.Name,
+                            Slug = menuNews.Menu.Slug,
+                            DisplayOrder = menuNews.Menu.DisplayOrder,
+                            CreatedAt = menuNews.Menu.CreatedAt
                         }).ToArray(),
                     // Cách 1: cộng chuỗi - address + Ward + Ward.Parent (đệ quy) + Country
-                    FullAddress = n.Ward == null
-                        ? n.Address
-                        : (n.Address ?? string.Empty) + ", " + n.Ward.Name
-                            + (n.Ward.Parent != null ? ", " + n.Ward.Parent.Name : string.Empty)
-                            + ", " + n.Ward.Country.Name,
+                    FullAddress = news.Ward == null
+                        ? news.Address
+                        : (news.Address ?? string.Empty) + ", " + news.Ward.Name
+                            + (news.Ward.Parent != null ? ", " + news.Ward.Parent.Name : string.Empty)
+                            + ", " + news.Ward.Country.Name,
                     // Cách 2: lồng object qua đệ quy Ward.Parent
-                    WardInfo = n.Ward == null ? null : new WardInfoDto
+                    WardInfo = news.Ward == null ? null : new WardInfoDto
                     {
-                        Id = n.Ward.Id,
-                        Name = n.Ward.Name,
-                        FullName = n.Ward.Name
-                            + (n.Ward.Parent != null ? ", " + n.Ward.Parent.Name : string.Empty)
-                            + ", " + n.Ward.Country.Name,
-                        WardParent = n.Ward.Parent == null ? null : new WardParentDto
+                        Id = news.Ward.Id,
+                        Name = news.Ward.Name,
+                        FullName = news.Ward.Name
+                            + (news.Ward.Parent != null ? ", " + news.Ward.Parent.Name : string.Empty)
+                            + ", " + news.Ward.Country.Name,
+                        WardParent = news.Ward.Parent == null ? null : new WardParentDto
                         {
-                            Id = n.Ward.Parent.Id,
-                            Name = n.Ward.Parent.Name
+                            Id = news.Ward.Parent.Id,
+                            Name = news.Ward.Parent.Name
                         },
-                        Country = new CountryDto { Id = n.Ward.Country.Id, Name = n.Ward.Country.Name }
+                        Country = new CountryDto { Id = news.Ward.Country.Id, Name = news.Ward.Country.Name }
                     }
                 })
                 .AsAsyncEnumerable();

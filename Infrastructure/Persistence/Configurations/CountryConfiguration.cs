@@ -11,7 +11,7 @@ namespace Infrastructure.Persistence.Configurations
             builder.ToTable("Countries");
 
             builder.HasKey(c => c.Id);
-            builder.Property(c => c.Id).HasColumnName("country_id").ValueGeneratedOnAdd();
+            builder.Property(c => c.Id).HasColumnName("country_id");
 
             builder.Property(c => c.Name).HasColumnName("name");
             builder.Property(c => c.IsDeleted).HasColumnName("is_deleted");

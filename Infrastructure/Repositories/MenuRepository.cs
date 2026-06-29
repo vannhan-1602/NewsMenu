@@ -13,35 +13,51 @@ namespace Infrastructure.Repositories
         public async Task<Menu?> GetBySlugAsync(string slug, CancellationToken ct = default)
         {
             return await _dbSet
-                .Where(x => !x.IsDeleted && x.Slug == slug)
+                .Where(menu => !menu.IsDeleted && menu.Slug == slug)
                 .FirstOrDefaultAsync(ct);
         }
+
         // Lấy toàn bộ liên kết MenuNews theo menuId
         public async Task<List<MenuNews>> GetMenuNewsByMenuIdAsync(int menuId, CancellationToken ct = default)
         {
-          
             var result = new List<MenuNews>();
-            await foreach (var mn in _context.MenuNews
-                .Where(x => x.MenuId == menuId)
+            await foreach (var menuNews in _context.MenuNews
+                .Where(menuNews => menuNews.MenuId == menuId)
                 .AsAsyncEnumerable()
                 .WithCancellation(ct))
             {
-                result.Add(mn);
+                result.Add(menuNews);
             }
             return result;
         }
-        // Thêm liên kết MenuNews
-        public void AddMenuNewsRange(IEnumerable<MenuNews> menuNews)
+
+        // Lấy toàn bộ liên kết MenuNews theo nhiều menuId (batch)
+        public async Task<List<MenuNews>> GetMenuNewsByMenuIdsAsync(IEnumerable<int> menuIds, CancellationToken ct = default)
+        {
+            var result = new List<MenuNews>();
+            await foreach (var menuNews in _context.MenuNews
+                .Where(menuNews => menuIds.Contains(menuNews.MenuId))
+                .AsAsyncEnumerable()
+                .WithCancellation(ct))
+            {
+                result.Add(menuNews);
+            }
+            return result;
+        }
+
+        // Thêm các liên kết MenuNews, tự động gán AssignedAt
+        public void AddMenuNewsRange(IEnumerable<MenuNews> menuNewsList)
         {
             var now = DateTime.UtcNow;
-            foreach (var mn in menuNews)
-                mn.AssignedAt = now;
-            _context.MenuNews.AddRange(menuNews);
+            foreach (var menuNews in menuNewsList)
+                menuNews.AssignedAt = now;
+            _context.MenuNews.AddRange(menuNewsList);
         }
-        // Xóa liên kết MenuNews
-        public void RemoveMenuNewsRange(IEnumerable<MenuNews> menuNews)
+
+        // Xóa các liên kết MenuNews
+        public void RemoveMenuNewsRange(IEnumerable<MenuNews> menuNewsList)
         {
-            _context.MenuNews.RemoveRange(menuNews);
+            _context.MenuNews.RemoveRange(menuNewsList);
         }
     }
 }

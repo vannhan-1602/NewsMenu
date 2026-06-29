@@ -18,16 +18,16 @@ namespace Application.UseCase
         public Task<IAsyncEnumerable<MenuDto>> Handle(GetDeletedMenuListRequest request, CancellationToken ct)
         {
             var result = _menuRepository.QueryDeleted()
-                .OrderByDescending(m => m.UpdatedAt)
+                .OrderByDescending(menu => menu.UpdatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Select(m => new MenuDto
+                .Select(menu => new MenuDto
                 {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Slug = m.Slug,
-                    DisplayOrder = m.DisplayOrder,
-                    CreatedAt = m.CreatedAt
+                    Id = menu.Id,
+                    Name = menu.Name,
+                    Slug = menu.Slug,
+                    DisplayOrder = menu.DisplayOrder,
+                    CreatedAt = menu.CreatedAt
                 })
                 .AsAsyncEnumerable();
 

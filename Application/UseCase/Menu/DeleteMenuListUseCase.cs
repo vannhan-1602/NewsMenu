@@ -24,35 +24,31 @@ namespace Application.UseCase
             try
             {
                 // Lấy danh sách Ids duy nhất từ request
-                var ids = request.Ids.Distinct().ToList();
+                var ids = request.Ids.Distinct().ToArray();
 
                 // Lấy danh sách menu từ cơ sở dữ liệu dựa trên danh sách Ids
-                var menus = new List<Menu>();
+                var menuList = new List<Menu>();
                 await foreach (var menu in _menuRepository.Query()
-                    .Where(m => ids.Contains(m.Id))
+                    .Where(menu => ids.Contains(menu.Id))
                     .AsAsyncEnumerable()
                     .WithCancellation(ct))
                 {
-                    menus.Add(menu);
+                    menuList.Add(menu);
                 }
-                //tìm id tồn tại trong db
-                var foundIds = menus.Select(m => m.Id).ToHashSet();
-                //tìm id không tồn tại trong db
+
+                var foundIds = menuList.Select(menu => menu.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                //danh sách MenuNews cần xóa
-                var allLinksToRemove = new List<MenuNews>();
+                // Batch load toàn bộ links của tất cả menu cần xóa, tránh N+1 query
+                var allLinksToRemove = await _menuRepository.GetMenuNewsByMenuIdsAsync(foundIds, ct);
 
-                foreach (var menu in menus)
-                {
+                // Đánh dấu xóa mềm cho tất cả menu
+                foreach (var menu in menuList)
                     menu.IsDeleted = true;
-                    // Lấy danh sách MenuNews liên quan đến menu hiện tại
-                    var links = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
-                    allLinksToRemove.AddRange(links);
-                }
+
                 // Cập nhật trạng thái IsDeleted của các menu
-                if (menus.Count > 0)
-                    _menuRepository.UpdateRange(menus);
+                if (menuList.Count > 0)
+                    _menuRepository.UpdateRange(menuList);
                 // Xóa các liên kết MenuNews
                 if (allLinksToRemove.Count > 0)
                     _menuRepository.RemoveMenuNewsRange(allLinksToRemove);
@@ -60,8 +56,8 @@ namespace Application.UseCase
                 await _unitOfWork.CommitAsync(ct);
 
                 var message = notFoundCount > 0
-                    ? $"Xoa {menus.Count} menu thanh cong. {notFoundCount} Id khong ton tai."
-                    : $"Xoa {menus.Count} menu thanh cong";
+                    ? $"Xóa {menuList.Count} menu thành công. {notFoundCount} Id không tồn tại."
+                    : $"Xóa {menuList.Count} menu thành công.";
 
                 return new BaseResponse { Success = true, Message = message };
             }

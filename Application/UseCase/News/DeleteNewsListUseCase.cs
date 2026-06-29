@@ -24,26 +24,26 @@ namespace Application.UseCase
             try
             {
                 // Lấy danh sách Ids duy nhất từ request
-                var ids = request.Ids.Distinct().ToList();
+                var ids = request.Ids.Distinct().ToArray();
                 var newsList = new List<News>();
                 await foreach (var news in _newsRepository.Query()
-                    .Where(n => ids.Contains(n.Id))
+                    .Where(news => ids.Contains(news.Id))
                     .AsAsyncEnumerable()
                     .WithCancellation(ct))
                 {
                     newsList.Add(news);
                 }
 
-                var foundIds = newsList.Select(n => n.Id).ToHashSet();
+                var foundIds = newsList.Select(news => news.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                var allLinksToRemove = new List<MenuNews>();
+                // Batch load toàn bộ links của tất cả news cần xóa, tránh N+1 query
+                var allLinksToRemove = await _newsRepository.GetMenuNewsByNewsIdsAsync(foundIds, ct);
+
+                // Đánh dấu xóa mềm cho tất cả news
                 foreach (var news in newsList)
-                {
                     news.IsDeleted = true;
-                    var links = await _newsRepository.GetMenuNewsByNewsIdAsync(news.Id, ct);
-                    allLinksToRemove.AddRange(links);
-                }
+
                 // Cập nhật trạng thái IsDeleted cho các News
                 if (newsList.Count > 0)
                     _newsRepository.UpdateRange(newsList);
@@ -54,8 +54,8 @@ namespace Application.UseCase
                 await _unitOfWork.CommitAsync(ct);
 
                 var message = notFoundCount > 0
-                    ? $"Xoa {newsList.Count} news thanh cong. {notFoundCount} Id khong ton tai."
-                    : $"Xoa {newsList.Count} news thanh cong";
+                    ? $"Xóa {newsList.Count} news thành công. {notFoundCount} Id không tồn tại."
+                    : $"Xóa {newsList.Count} news thành công.";
 
                 return new BaseResponse { Success = true, Message = message };
             }

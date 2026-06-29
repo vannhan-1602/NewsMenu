@@ -9,12 +9,8 @@ namespace Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Menu> builder)
         {
             builder.ToTable("Menus");
-
             builder.HasKey(m => m.Id);
-            builder.Property(m => m.Id)
-                   .HasColumnName("menu_id")
-                   .ValueGeneratedOnAdd();
-
+            builder.Property(m => m.Id).HasColumnName("menu_id");
             builder.Property(m => m.Name).HasColumnName("name");
             builder.Property(m => m.Slug).HasColumnName("slug");
             builder.Property(m => m.DisplayOrder).HasColumnName("display_order");

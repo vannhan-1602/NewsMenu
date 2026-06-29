@@ -17,25 +17,24 @@ namespace Application.UseCase
 
         public Task<IAsyncEnumerable<MenuDto>> Handle(GetMenuListRequest request, CancellationToken ct)
         {
-           
             var result = _menuRepository.Query()
-                .OrderBy(m => m.DisplayOrder)
+                .OrderBy(menu => menu.DisplayOrder)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Select(m => new MenuDto
+                .Select(menu => new MenuDto
                 {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Slug = m.Slug,
-                    DisplayOrder = m.DisplayOrder,
-                    CreatedAt = m.CreatedAt,
-                    News = m.MenuNewsList
-                        .Where(mn => !mn.News.IsDeleted)
-                        .Select(mn => new NewsSimpleDto
+                    Id = menu.Id,
+                    Name = menu.Name,
+                    Slug = menu.Slug,
+                    DisplayOrder = menu.DisplayOrder,
+                    CreatedAt = menu.CreatedAt,
+                    News = menu.MenuNewsList
+                        .Where(menuNews => !menuNews.News.IsDeleted)
+                        .Select(menuNews => new NewsSimpleDto
                         {
-                            Id = mn.News.Id,
-                            Title = mn.News.Title,
-                            IsPublished = mn.News.IsPublished
+                            Id = menuNews.News.Id,
+                            Title = menuNews.News.Title,
+                            IsPublished = menuNews.News.IsPublished
                         }).ToArray()
                 })
                 .AsAsyncEnumerable();

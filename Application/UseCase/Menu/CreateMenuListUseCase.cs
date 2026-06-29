@@ -24,8 +24,8 @@ namespace Application.UseCase
 
         public async Task<BaseResponse> Handle(CreateMenuListRequest request, CancellationToken ct)
         {
-            // Validate tất cả news ids trước khi mở transaction
-            var allNewsIds = request.Items.SelectMany(x => x.NewsIds).Distinct();
+            // Validate tất cả news ids
+            var allNewsIds = request.Items.SelectMany(item => item.NewsIds).Distinct();
             var existingNewsIds = allNewsIds.Any()
                 ? await _newsRepository.GetExistingIdsAsync(allNewsIds, ct)
                 : new List<int>();

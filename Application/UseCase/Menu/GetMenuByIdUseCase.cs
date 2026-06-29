@@ -17,23 +17,22 @@ namespace Application.UseCase
 
         public async Task<MenuDto?> Handle(GetMenuByIdRequest request, CancellationToken ct)
         {
-
             return await _menuRepository.Query()
-                .Where(m => m.Id == request.Id)
-                .Select(m => new MenuDto
+                .Where(menu => menu.Id == request.Id)
+                .Select(menu => new MenuDto
                 {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Slug = m.Slug,
-                    DisplayOrder = m.DisplayOrder,
-                    CreatedAt = m.CreatedAt,
-                    News = m.MenuNewsList
-                        .Where(mn => !mn.News.IsDeleted)
-                        .Select(mn => new NewsSimpleDto
+                    Id = menu.Id,
+                    Name = menu.Name,
+                    Slug = menu.Slug,
+                    DisplayOrder = menu.DisplayOrder,
+                    CreatedAt = menu.CreatedAt,
+                    News = menu.MenuNewsList
+                        .Where(menuNews => !menuNews.News.IsDeleted)
+                        .Select(menuNews => new NewsSimpleDto
                         {
-                            Id = mn.News.Id,
-                            Title = mn.News.Title,
-                            IsPublished = mn.News.IsPublished
+                            Id = menuNews.News.Id,
+                            Title = menuNews.News.Title,
+                            IsPublished = menuNews.News.IsPublished
                         }).ToArray()
                 })
                 .FirstOrDefaultAsync(ct);

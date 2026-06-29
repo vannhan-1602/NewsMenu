@@ -51,6 +51,12 @@ namespace Application.UseCase
 
                 var menuLookup = menuList.ToDictionary(menu => menu.Id);
 
+                // Batch load toàn bộ links hiện tại của tất cả menu, tránh N+1 query
+                var allCurrentLinks = await _menuRepository.GetMenuNewsByMenuIdsAsync(requestedIds, ct);
+                var currentLinksLookup = allCurrentLinks
+                    .GroupBy(link => link.MenuId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
                 int notFoundCount = 0;
                 int totalInvalidNewsCount = 0;
                 var linksToAdd = new List<MenuNews>();
@@ -69,8 +75,8 @@ namespace Application.UseCase
                     var validNewsIdsForItem = item.NewsIds.Distinct().Where(existingNewsIdSet.Contains).ToList();
                     totalInvalidNewsCount += item.NewsIds.Distinct().Count() - validNewsIdsForItem.Count;
 
-                    // Diff-based: chỉ xóa link không còn dùng, chỉ thêm link mới
-                    var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
+                    // chỉ xóa link không còn dùng, chỉ thêm link mới
+                    var currentLinks = currentLinksLookup.TryGetValue(menu.Id, out var links) ? links : new List<MenuNews>();
                     var currentNewsIdSet = currentLinks.Select(link => link.NewsId).ToHashSet();
                     var newNewsIdSet = new HashSet<int>(validNewsIdsForItem);
 

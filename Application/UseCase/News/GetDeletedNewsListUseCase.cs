@@ -2,6 +2,7 @@
 using Application.Request.News;
 using Domain.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.UseCase
 {
@@ -17,20 +18,20 @@ namespace Application.UseCase
         public Task<IAsyncEnumerable<NewsDto>> Handle(GetDeletedNewsListRequest request, CancellationToken ct)
         {
             var result = _newsRepository.QueryDeleted()
-                .OrderByDescending(n => n.UpdatedAt)
+                .OrderByDescending(news => news.UpdatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Select(n => new NewsDto
+                .Select(news => new NewsDto
                 {
-                    Id = n.Id,
-                    Title = n.Title,
-                    Content = n.Content,
-                    Summary = n.Summary,
-                    IsPublished = n.IsPublished,
-                    CreatedAt = n.CreatedAt,
-                    UpdatedAt = n.UpdatedAt,
-                    Address = n.Address,
-                    WardId = n.WardId
+                    Id = news.Id,
+                    Title = news.Title,
+                    Content = news.Content,
+                    Summary = news.Summary,
+                    IsPublished = news.IsPublished,
+                    CreatedAt = news.CreatedAt,
+                    UpdatedAt = news.UpdatedAt,
+                    Address = news.Address,
+                    WardId = news.WardId
                 })
                 .AsAsyncEnumerable();
 

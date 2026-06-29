@@ -8,20 +8,20 @@ namespace Application.Validator.News
         public CreateNewsListValidator()
         {
             RuleFor(x => x.Items)
-                .NotEmpty().WithMessage("Items khong duoc rong");
+                .NotEmpty().WithMessage("Items không được rỗng");
 
             RuleForEach(x => x.Items).ChildRules(item =>
             {
-                item.RuleFor(i => i.Title)
-                    .NotEmpty().WithMessage("Title khong duoc de trong")
-                    .MaximumLength(500).WithMessage("Title khong vuot qua 500 ky tu");
+                item.RuleFor(newsItem => newsItem.Title)
+                    .NotEmpty().WithMessage("Title không được để trống")
+                    .MaximumLength(500).WithMessage("Title không vượt quá 500 ký tự");
 
-                item.RuleFor(i => i.Content)
-                    .NotEmpty().WithMessage("Content khong duoc de trong");
+                item.RuleFor(newsItem => newsItem.Content)
+                    .NotEmpty().WithMessage("Content không được để trống");
 
-                item.RuleFor(i => i.Summary)
-                    .MaximumLength(1000).WithMessage("Summary khong vuot qua 1000 ky tu")
-                    .When(i => i.Summary != null);
+                item.RuleFor(newsItem => newsItem.Summary)
+                    .MaximumLength(1000).WithMessage("Summary không vượt quá 1000 ký tự")
+                    .When(newsItem => newsItem.Summary != null);
             });
         }
     }
