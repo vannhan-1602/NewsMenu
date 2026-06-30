@@ -51,7 +51,7 @@ namespace Application.UseCase
 
                 var menuLookup = menuList.ToDictionary(menu => menu.Id);
 
-                // Batch load toàn bộ links hiện tại của tất cả menu, tránh N+1 query
+                // Batch load toàn bộ links hiện tại của tất cả menu
                 var allCurrentLinks = await _menuRepository.GetMenuNewsByMenuIdsAsync(requestedIds, ct);
                 var currentLinksLookup = allCurrentLinks
                     .GroupBy(link => link.MenuId)

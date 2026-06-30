@@ -19,9 +19,7 @@ namespace Infrastructure.Repositories
         // Lấy theo id - chỉ lấy bản ghi chưa xóa mềm
         public async Task<T?> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            return await _dbSet
-                .Where(entity => entity.Id == id && !entity.IsDeleted)
-                .FirstOrDefaultAsync(ct);
+            return await _dbSet.Where(entity => entity.Id == id && !entity.IsDeleted).FirstOrDefaultAsync(ct);
         }
 
         // Trả về IQueryable các bản ghi chưa xóa mềm, dùng AsNoTracking để tăng hiệu suất khi chỉ đọc dữ liệu

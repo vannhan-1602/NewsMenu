@@ -55,8 +55,7 @@ namespace Application.UseCase
                     allLinks.AddRange(validIds.Select(newsId => new MenuNews { MenuId = menus[i].Id, NewsId = newsId }));
                 }
 
-                if (allLinks.Count > 0)
-                    _menuRepository.AddMenuNewsRange(allLinks);
+                if (allLinks.Count > 0) _menuRepository.AddMenuNewsRange(allLinks);
 
                 await _unitOfWork.CommitAsync(ct);
 

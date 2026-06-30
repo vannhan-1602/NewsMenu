@@ -12,9 +12,7 @@ namespace Infrastructure.Repositories
         // Lấy menu theo slug
         public async Task<Menu?> GetBySlugAsync(string slug, CancellationToken ct = default)
         {
-            return await _dbSet
-                .Where(menu => !menu.IsDeleted && menu.Slug == slug)
-                .FirstOrDefaultAsync(ct);
+            return await _dbSet.Where(menu => !menu.IsDeleted && menu.Slug == slug).FirstOrDefaultAsync(ct);
         }
 
         // Lấy toàn bộ liên kết MenuNews theo menuId
