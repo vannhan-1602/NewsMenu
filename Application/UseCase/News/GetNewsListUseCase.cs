@@ -17,8 +17,33 @@ namespace Application.UseCase
 
         public Task<IAsyncEnumerable<NewsDto>> Handle(GetNewsListRequest request, CancellationToken ct)
         {
-            var result = _newsRepository.Query()
-                .OrderByDescending(news => news.CreatedAt)
+            var query = _newsRepository.Query();
+
+            if (!string.IsNullOrWhiteSpace(request.Keyword))
+                query = query.Where(news => news.Title.Contains(request.Keyword));
+
+            if (request.IsPublished.HasValue)
+                query = query.Where(news => news.IsPublished == request.IsPublished.Value);
+
+            if (request.MenuId.HasValue)
+                query = query.Where(news => news.MenuNewsList.Any(menuNews => menuNews.MenuId == request.MenuId.Value));
+
+            if (request.DateFrom.HasValue)
+                query = query.Where(news => news.CreatedAt >= request.DateFrom.Value);
+
+            if (request.DateTo.HasValue)
+                query = query.Where(news => news.CreatedAt <= request.DateTo.Value);
+
+            query = request.SortBy switch
+            {
+                NewsSortBy.CreatedAtAsc => query.OrderBy(news => news.CreatedAt),
+                NewsSortBy.TitleAsc => query.OrderBy(news => news.Title),
+                NewsSortBy.TitleDesc => query.OrderByDescending(news => news.Title),
+                NewsSortBy.UpdatedAtDesc => query.OrderByDescending(news => news.UpdatedAt),
+                _ => query.OrderByDescending(news => news.CreatedAt)
+            };
+
+            var result = query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .Select(news => new NewsDto

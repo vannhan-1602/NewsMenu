@@ -6,7 +6,7 @@ namespace Domain.Interfaces
     {
         Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
 
-       
+
         IQueryable<T> Query();
 
         Task<List<int>> GetExistingIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);

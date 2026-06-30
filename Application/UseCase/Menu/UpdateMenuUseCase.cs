@@ -49,7 +49,7 @@ namespace Application.UseCase
                 _mapper.Map(request, menu);
                 _menuRepository.Update(menu);
 
-                // Diff-based: chỉ xóa link không còn dùng, chỉ thêm link mới
+                // chỉ xóa link không còn dùng, chỉ thêm link mới
                 var currentLinks = await _menuRepository.GetMenuNewsByMenuIdAsync(menu.Id, ct);
                 var currentNewsIdSet = currentLinks.Select(link => link.NewsId).ToHashSet();
                 var newNewsIdSet = new HashSet<int>(validNewsIds);

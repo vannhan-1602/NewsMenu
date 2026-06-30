@@ -42,9 +42,31 @@ namespace Presentation.API.Controllers
         public async Task<IAsyncEnumerable<NewsDto>> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
+            [FromQuery] bool? isPublished = null,
+            [FromQuery] int? menuId = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null,
+            [FromQuery] NewsSortBy sortBy = NewsSortBy.CreatedAtDesc,
             CancellationToken ct = default)
         {
-            return await _mediator.Send(new GetNewsListRequest { Page = page, PageSize = pageSize }, ct);
+            var request = new GetNewsListRequest
+            {
+                Page = page,
+                PageSize = pageSize,
+                Keyword = keyword,
+                IsPublished = isPublished,
+                MenuId = menuId,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                SortBy = sortBy
+            };
+
+            // Query riêng để lấy TotalCount, không phá luồng streaming của GetNewsListRequest
+            var totalCount = await _mediator.Send(CountNewsRequest.FromListRequest(request), ct);
+            Response.Headers["X-Total-Count"] = totalCount.ToString();
+
+            return await _mediator.Send(request, ct);
         }
 
         [HttpGet("{id:int}")]
