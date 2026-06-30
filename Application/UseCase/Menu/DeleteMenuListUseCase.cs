@@ -39,9 +39,6 @@ namespace Application.UseCase
                 var foundIds = menuList.Select(menu => menu.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                // Batch load toàn bộ links của tất cả menu cần xóa, tránh N+1 query
-                var allLinksToRemove = await _menuRepository.GetMenuNewsByMenuIdsAsync(foundIds, ct);
-
                 // Đánh dấu xóa mềm cho tất cả menu
                 foreach (var menu in menuList)
                     menu.IsDeleted = true;
@@ -49,9 +46,7 @@ namespace Application.UseCase
                 // Cập nhật trạng thái IsDeleted của các menu
                 if (menuList.Count > 0)
                     _menuRepository.UpdateRange(menuList);
-                // Xóa các liên kết MenuNews
-                if (allLinksToRemove.Count > 0)
-                    _menuRepository.RemoveMenuNewsRange(allLinksToRemove);
+                // Không xóa liên kết MenuNews khi soft-delete
 
                 await _unitOfWork.CommitAsync(ct);
 

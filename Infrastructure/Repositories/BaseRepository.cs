@@ -101,35 +101,5 @@ namespace Infrastructure.Repositories
         {
             return await _dbSet.Where(entity => entity.Id == id).FirstOrDefaultAsync(ct);
         }
-
-        // Lấy danh sách MenuNews theo 1 điều kiện filter bất kỳ
-        protected async Task<List<MenuNews>> GetMenuNewsAsync(
-            System.Linq.Expressions.Expression<Func<MenuNews, bool>> predicate, CancellationToken ct = default)
-        {
-            var result = new List<MenuNews>();
-            await foreach (var menuNews in _context.MenuNews
-                .Where(predicate)
-                .AsAsyncEnumerable()
-                .WithCancellation(ct))
-            {
-                result.Add(menuNews);
-            }
-            return result;
-        }
-
-        // Thêm các liên kết MenuNews, tự động gán AssignedAt
-        public void AddMenuNewsRange(IEnumerable<MenuNews> menuNewsList)
-        {
-            var now = DateTime.UtcNow;
-            foreach (var menuNews in menuNewsList)
-                menuNews.AssignedAt = now;
-            _context.MenuNews.AddRange(menuNewsList);
-        }
-
-        // Xóa các liên kết MenuNews
-        public void RemoveMenuNewsRange(IEnumerable<MenuNews> menuNewsList)
-        {
-            _context.MenuNews.RemoveRange(menuNewsList);
-        }
     }
 }

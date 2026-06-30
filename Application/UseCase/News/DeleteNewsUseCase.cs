@@ -29,10 +29,7 @@ namespace Application.UseCase
                 news.IsDeleted = true;
                 _newsRepository.Update(news);
 
-                // Xóa các liên kết MenuNews liên quan đến News
-                var links = await _newsRepository.GetMenuNewsByNewsIdAsync(news.Id, ct);
-                if (links.Count > 0)
-                    _newsRepository.RemoveMenuNewsRange(links);
+                // Không xóa liên kết MenuNews khi soft-delete
 
                 await _unitOfWork.CommitAsync(ct);
 

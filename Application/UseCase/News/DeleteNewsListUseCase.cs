@@ -37,9 +37,6 @@ namespace Application.UseCase
                 var foundIds = newsList.Select(news => news.Id).ToHashSet();
                 var notFoundCount = ids.Count(id => !foundIds.Contains(id));
 
-                // Batch load toàn bộ links của tất cả news cần xóa, tránh N+1 query
-                var allLinksToRemove = await _newsRepository.GetMenuNewsByNewsIdsAsync(foundIds, ct);
-
                 // Đánh dấu xóa mềm cho tất cả news
                 foreach (var news in newsList)
                     news.IsDeleted = true;
@@ -47,9 +44,7 @@ namespace Application.UseCase
                 // Cập nhật trạng thái IsDeleted cho các News
                 if (newsList.Count > 0)
                     _newsRepository.UpdateRange(newsList);
-                // Xóa các liên kết MenuNews
-                if (allLinksToRemove.Count > 0)
-                    _newsRepository.RemoveMenuNewsRange(allLinksToRemove);
+                // Không xóa liên kết MenuNews khi soft-delete
 
                 await _unitOfWork.CommitAsync(ct);
 
