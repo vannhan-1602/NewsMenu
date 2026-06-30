@@ -9,7 +9,6 @@ namespace Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<News> builder)
         {
             builder.ToTable("News");
-
             builder.HasKey(n => n.Id);
             builder.Property(n => n.Id).HasColumnName("news_id");
             builder.Property(n => n.Title).HasColumnName("title");
