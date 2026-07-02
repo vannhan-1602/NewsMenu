@@ -28,7 +28,7 @@ namespace Application.UseCase
 
         public async Task<BaseResponse> Handle(UpdateMenuRequest request, CancellationToken ct)
         {
-            // Validate news ids trước khi mở transaction
+            // Validate news ids 
             var validNewsIds = new List<int>();
             var invalidNewsIds = new List<int>();
             if (request.NewsIds.Count > 0)
